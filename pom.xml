@@ -13,6 +13,10 @@
           <activeByDefault>true</activeByDefault>
         </activation>
         <repositories>
+          <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+          </repository>
             <repository>
                 <id>SWBExternalDeps</id>
                 <name>SWBExternalDeps</name>
