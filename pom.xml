@@ -18,10 +18,6 @@
             <url>https://jitpack.io</url>
           </repository>
             <repository>
-		          <id>jitpack.io</id>
-              <url>https://jitpack.io</url>
-            </repository>
-            <repository>
                 <id>SWBExternalDeps</id>
                 <name>SWBExternalDeps</name>
                 <url>https://github.com/SemanticWebBuilder/SWBExternalDeps/raw/master/</url>
