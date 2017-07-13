@@ -18,7 +18,7 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ *  http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.util.db;
 
@@ -367,12 +367,10 @@ public class GenericDB {
     {
         boolean bOk=false;
         String schema=null;
-        try { 
-            //schema = com.infotec.appfw.util.AFUtils.getInstance().readInputStream(WBUtils.getInstance().getAdminFileStream("/wbadmin/schema/GenericDB.xsd")); 
+        try {  
             schema = SWBUtils.IO.getFileFromPath(SWBUtils.getApplicationPath()+"/WEB-INF/xsds/GenericDB.xsd");
         } 
         catch(Exception e) { return bOk; }
-        //if (schema != null && xml !=null) bOk=com.infotec.wb.admin.admresources.util.WBAdmResourceUtils.getInstance().xmlVerifier(schema, xml);
         if (schema != null && xml !=null) bOk=SWBUtils.XML.xmlVerifier(schema, xml);
         return bOk;
     }
