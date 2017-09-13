@@ -1,12 +1,27 @@
 /*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
+ * SemanticWebBuilder es una plataforma para el desarrollo de portales y aplicaciones de integración,
+ * colaboración y conocimiento, que gracias al uso de tecnología semántica puede generar contextos de
+ * información alrededor de algún tema de interés o bien integrar información y aplicaciones de diferentes
+ * fuentes, donde a la información se le asigna un significado, de forma que pueda ser interpretada y
+ * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
+ * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
+ *
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
+ * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
+ * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
+ * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
+ * del SemanticWebBuilder 4.0.
+ *
+ * INFOTEC no otorga garantía sobre SemanticWebBuilder, de ninguna especie y naturaleza, ni implícita ni explícita,
+ * siendo usted completamente responsable de la utilización que le dé y asumiendo la totalidad de los riesgos que puedan derivar
+ * de la misma.
+ *
+ * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
+ * dirección electrónica:
+ *  http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.platform;
 
-import com.hp.hpl.jena.graph.Triple;
-import com.hp.hpl.jena.rdf.model.Property;
-import com.hp.hpl.jena.vocabulary.RDF;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -14,19 +29,23 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+
 import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.SWBUtils;
-import org.semanticwb.remotetriplestore.RGraph;
+import org.semanticwb.rdf.RGraph;
+
+import com.hp.hpl.jena.graph.Triple;
+import com.hp.hpl.jena.rdf.model.Property;
+import com.hp.hpl.jena.vocabulary.RDF;
 
 /**
  *
- * @author javier.solis.g
+ * @author Javier Solís {javier.solis.g}
  */
 public class SemanticSearch
 {
-    private static Logger log= SWBUtils.getLogger(SemanticSearch.class);    
-    
+    private static final Logger log= SWBUtils.getLogger(SemanticSearch.class);    
     public static Iterator<SemanticObject> listFullInstances(SemanticModel model, SemanticClass cls)
     {        
         if(SWBPlatform.isSWBTripleStoreExt())
@@ -70,12 +89,11 @@ public class SemanticSearch
             try
             {
                 int joins=triples.size()-1;
-                //if(joins<0)joins=0;
                 if(orderby!=null)joins++;
                 
                 Connection con= SWBUtils.DB.getDefaultConnection();
-                StringBuffer query=new StringBuffer();
-                StringBuffer where=new StringBuffer();
+                StringBuilder query=new StringBuilder();
+                StringBuilder where=new StringBuilder();
                 query.append("select t1.subj, t1.ext from swb_graph_ts"+id+" as t1");
                 for(int x=1;x<=joins;x++)
                 {
@@ -84,7 +102,7 @@ public class SemanticSearch
                 
                 if(stype!=null)where.append(" t1.stype='"+stype+"'");
 
-                ArrayList<String> params=new ArrayList();
+                ArrayList<String> params=new ArrayList<>();
                 int cp=1;
                 Iterator<Triple> it=triples.iterator();
                 while (it.hasNext())
@@ -156,7 +174,3 @@ public class SemanticSearch
         return null;
     }    
 }
-
-
-
-

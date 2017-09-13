@@ -4,6 +4,18 @@
  */
 package org.semanticwb.rdf.sparql;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSetMetaData;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.NoSuchElementException;
+
+import org.semanticwb.Logger;
+import org.semanticwb.SWBUtils;
+import org.semanticwb.rdf.RGraph;
+
 import com.hp.hpl.jena.datatypes.BaseDatatype;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.impl.LiteralLabelFactory;
@@ -20,17 +32,6 @@ import com.hp.hpl.jena.sparql.engine.binding.Binding;
 import com.hp.hpl.jena.sparql.engine.binding.BindingMap;
 import com.hp.hpl.jena.sparql.util.Context;
 import com.hp.hpl.jena.util.FileManager;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSetMetaData;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import org.semanticwb.Logger;
-import org.semanticwb.SWBUtils;
-import org.semanticwb.platform.SemanticModel;
-import org.semanticwb.remotetriplestore.RGraph;
 
 /**
  *

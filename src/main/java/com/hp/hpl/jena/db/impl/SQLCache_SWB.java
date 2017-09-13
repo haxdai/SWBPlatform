@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -18,17 +18,11 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ *  http://www.semanticwebbuilder.org.mx
  **/
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.hp.hpl.jena.db.impl;
 
-import com.hp.hpl.jena.db.IDBConnection;
-import com.hp.hpl.jena.db.RDFRDBException;
-import com.hp.hpl.jena.shared.JenaException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -38,34 +32,27 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.SWBUtils;
 import org.semanticwb.base.db.AutoConnection;
-import org.semanticwb.base.db.PoolConnection;
 import org.semanticwb.platform.ThreadObserver;
 
-// TODO: Auto-generated Javadoc
+import com.hp.hpl.jena.db.IDBConnection;
+import com.hp.hpl.jena.db.RDFRDBException;
+import com.hp.hpl.jena.shared.JenaException;
+
 /**
  * The Class SQLCache_SWB.
  * 
- * @author javier.solis
+ * @author Javier Solís {javier.solis}
  */
 public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
 
     /** The log. */
-    private static Logger log = SWBUtils.getLogger(SQLCache_SWB.class);
+    private static final Logger log = SWBUtils.getLogger(SQLCache_SWB.class);
 
-    /**
-     * The arr.
-     * 
-     * @param sqlFile the sql file
-     * @param defaultOps the default ops
-     * @param connection the connection
-     * @param idType the id type
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    //private ArrayList arr=new ArrayList();
     /**
      * Constructor. Creates a new cache sql statements for interfacing to
      * a specific database.
@@ -85,12 +72,11 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
         SWBPlatform.createInstance().registerThreadObserver(this);
     }
 
-    ConcurrentHashMap<Long, Connection> thcon=new ConcurrentHashMap();
+    ConcurrentHashMap<Long, Connection> thcon=new ConcurrentHashMap<>();
 
     private Connection getThreadConnection()
     {
         long th=Thread.currentThread().getId();
-        //System.out.println("getThreadConnection:"+th+" "+Thread.currentThread().getName());
         Connection con=thcon.get(th);
         if(con==null)
         {
@@ -109,15 +95,12 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
 
     private void returnThreadConnection(Connection con)
     {
-        //Nada que hacer
-        //long th=Thread.currentThread().getId();
-        //System.out.println("returnThreadConnection:"+th);
+    		//Nada que hacer
     }
 
     private void closeThreadConnection()
     {
         long th=Thread.currentThread().getId();
-        //System.out.println("closeThreadConnection:"+th);
         Connection con=thcon.remove(th);
         try
         {
@@ -139,7 +122,7 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
      * @return the stack trace
      */
     String getStackTrace() {
-        StringBuffer ret = new StringBuffer();
+        StringBuilder ret = new StringBuilder();
         StackTraceElement ste[] = Thread.currentThread().getStackTrace();
         for (int i = 0; i < ste.length; i++) {
             ret.append(ste[i].toString() + "\n");
@@ -162,12 +145,7 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
         if (m_connection == null) {
             return null;
         }
-//        if(sql.indexOf("SWB_LONG_LIT")>0)
-//        {
-//            System.out.println("new con:" + sql);
-//            return getConnection().prepareStatement(sql);
-//        }
-        //Connection con = SWBUtils.DB.getDefaultConnection();
+
         Connection con = getThreadConnection();
         return con.prepareStatement(sql);
     }
@@ -269,13 +247,9 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
     @Override
     public void runSQLGroup(String opname, String[] attr) throws SQLException {
         String op = null;
-        SQLException eignore = null;
-
-        //Connection con = SWBUtils.DB.getDefaultConnection();
         Connection con = getThreadConnection();
         java.sql.Statement sql = con.createStatement();
-        //java.sql.Statement sql = getConnection().createStatement();
-        Iterator ops = getSQLStatementGroup(opname).iterator();
+        Iterator<String> ops = getSQLStatementGroup(opname).iterator();
 
         try {
             int attrCnt = attr == null ? 0 : attr.length;
@@ -303,18 +277,15 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
                     op = substitute(op, "${f}", attr[5]);
                 }
                 try {
-                    //System.out.println("SQL : "+op) ;
                     sql.execute(op);
                 } catch (SQLException e) {
                     // This is debugging legacy, exception is still reported at the end
-                    //System.out.println("SQL failure: " + op + ": " + e); System.out.flush() ;
                     throw e;
                 }
             }
         } finally {
             try {
                 sql.close();
-                //con.close();
                 returnThreadConnection(con);
             } catch (SQLException e2) {
             }
@@ -334,11 +305,8 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
         try {
             Connection con = ps.getConnection();
             ps.close();
-            //System.out.println("close st:" + ps);
             if (con != getConnection()) {
                 returnThreadConnection(con);
-                //con.close();
-                //System.out.println("closing connection...");
             }
         } catch (SQLException e) {
             log.warn("Problem discarded prepared statement", e);

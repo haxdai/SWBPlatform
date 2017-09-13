@@ -20,7 +20,7 @@
  * dirección electrónica:
  *  http://www.semanticwebbuilder.org
  */
-package org.semanticwb.remotetriplestore;
+package org.semanticwb.rdf;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.TransactionHandler;

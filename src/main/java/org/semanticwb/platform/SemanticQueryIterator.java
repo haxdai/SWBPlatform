@@ -8,9 +8,10 @@ import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.util.Iterator;
+
 import org.semanticwb.Logger;
 import org.semanticwb.SWBUtils;
-import org.semanticwb.remotetriplestore.RGraph;
+import org.semanticwb.rdf.RGraph;
 
 /**
  *
