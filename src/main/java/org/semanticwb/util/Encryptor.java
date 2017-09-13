@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -18,13 +18,10 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ *  http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.util;
 
-import java.math.*;
-
-// TODO: Auto-generated Javadoc
 /**
  * TEA Encryption Algoritm.
  * <P>
@@ -118,20 +115,6 @@ public class Encryptor
      */
     public static void main(String args[])
     {
-        String keyString = "05fe858d86df4b909a8c87cb8d9ad596";
-        byte key[] = new BigInteger(keyString, 16).toByteArray();
-        Encryptor t = new Encryptor(key);
-
-        String src = "hello world!";
-        //System.out.println("input = [" + src + "]");
-
-        String hexStr = t.encode(src);
-        //System.out.println("Encoding as Hex string: " + hexStr);
-
-        //System.out.println("output = [" + t.decode(hexStr) + "]");
-
-        //System.out.println("Checksum of: " + src + " -->" + Long.toHexString(t.getChecksum(src)));
-
         System.exit(0);
     }
 
@@ -166,18 +149,6 @@ public class Encryptor
     {
         _key = key;
     }
-
-    /*
-/**
-* Representation of TEA class
-*
-public String toString()
-{
-    String tea = this.getClass().getName();
-    tea +=  ": Tiny Encryption Algorithm (TEA)  key: " + getHex(_keyBytes);
-    return tea;
-}
-    */
 
     /**
      * Encipher two <code>int</code>s.
@@ -248,8 +219,6 @@ public String toString()
 
         int n = 32;
 
-        // sum = delta<<5, in general sum = delta * n
-
         while (n-- > 0)
         {
             z -= (y << 4 ^ y >>> 5) + y ^ sum + _key[(sum >>> 11) & 3];
@@ -282,8 +251,6 @@ public String toString()
         byte plainSource[] = str.getBytes();
         int enc[] = encode(plainSource, plainSource.length);
 
-// Report on padding, it should be zero since we originally padded the string with spaces.
-//System.out.println(padding() + " bytes added as padding.");
 
 // Display what the encoding would be in a hex string.
         return binToHex(enc);
@@ -329,19 +296,6 @@ public String toString()
 
         return out;
     }
-
-    /**
-     * Report how much padding was done in the last encode.
-     * 
-     * @param hexStr the hex str
-     * @return bytes of padding added
-     * @see #encode
-     * 
-     * private int padding()
-     * {
-     * return _padding;
-     * }
-     */
 
     /**
      * Decode HexString.
@@ -537,10 +491,8 @@ public String toString()
         if ((enc.length % 2) == 1)
             throw new ArrayIndexOutOfBoundsException("Odd number of ints found: " + enc.length);
 
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         byte outb[] = new byte[8];
-        int tmp[] = new int[2];
-        int counter = enc.length / 2;
 
         for (int i = 0; i < enc.length; i += 2)
         {
@@ -569,7 +521,7 @@ public String toString()
      */
     public String getHex(byte b[])
     {
-        StringBuffer r = new StringBuffer();
+        StringBuilder r = new StringBuilder();
 
         for (int i = 0; i < b.length; i++)
         {
@@ -581,34 +533,6 @@ public String toString()
 
         return r.toString();
     }
-
-    /*
-/**
-* Pad a string out to the proper length with the given character.
-*
-* @param str Plain text string.
-* @param pc Padding character.
-*
-private String padPlaintext(String str, char pc)
-{
-    StringBuffer sb = new StringBuffer(str);
-    int padding = sb.length() % 8;
-    for (int i = 0; i < padding; i++)
-        sb.append(pc);
-
-    return sb.toString();
-}
-
-/**
-* Pad a string out to the proper length with spaces.
-*
-* @param str Plain text string.
-*
-private String padPlaintext(String str)
-{
-    return padPlaintext(str, ' ');
-}
-    */
 
     /**
      * Gets the checksum.

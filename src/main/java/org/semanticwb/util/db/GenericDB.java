@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -18,30 +18,29 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org.mx
+ *  http://www.semanticwebbuilder.org.mx.mx
  */
 package org.semanticwb.util.db;
 
-import org.semanticwb.SWBUtils;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.HashMap;
-
 import java.util.StringTokenizer;
-import org.hibernate.dialect.*;
+
+import org.hibernate.dialect.Dialect;
 import org.hibernate.dialect.resolver.DialectFactory;
 import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
+import org.semanticwb.SWBUtils;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.NodeList;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class GenericDB.
  * 
- * @author juan.fernandez
+ * @author Juan Fernández {juan.fernandez}
  */
 public class GenericDB {
 
@@ -79,24 +78,21 @@ public class GenericDB {
     
     static final String DB_VIRTUOSO = "OPENLINK VIRTUOSO VDBMS";
     
-    
-    //static final String SQL_ARRAY = "ARRAY";
-    //static final String SQL_TEXT = "TEXT";
     /** The Constant SQL_CHAR. */
     static final String SQL_CHAR = "CHAR";
     
     /** The Constant SQL_VARCHAR. */
     static final String SQL_VARCHAR = "VARCHAR";
-    //static final String SQL_LONGVARCHAR = "LONGVARCHAR";
+
     /** The Constant SQL_NUMERIC. */
     static final String SQL_NUMERIC = "NUMERIC";
-    //static final String SQL_DECIMAL = "DECIMAL";
+
     /** The Constant SQL_BIT. */
     static final String SQL_BIT = "BIT";
     
     /** The Constant SQL_BLOB. */
     static final String SQL_BLOB = "BLOB";
-    //static final String SQL_TINYINT = "TINYINT";
+
     /** The Constant SQL_SMALLINT. */
     static final String SQL_SMALLINT = "SMALLINT";
     
@@ -105,15 +101,13 @@ public class GenericDB {
     
     /** The Constant SQL_BIGINT. */
     static final String SQL_BIGINT = "BIGINT";
-    //static final String SQL_REAL = "REAL";
+
     /** The Constant SQL_FLOAT. */
     static final String SQL_FLOAT = "FLOAT";
     
     /** The Constant SQL_DOUBLE. */
     static final String SQL_DOUBLE = "DOUBLE";
-    //static final String SQL_BINARY = "BINARY";
-    //static final String SQL_VARBINARY = "VARBINARY";
-    //static final String SQL_LONGVARBINARY = "LONGVARBINARY";
+
     /** The Constant SQL_DATE. */
     static final String SQL_DATE = "DATE";
     
@@ -122,16 +116,9 @@ public class GenericDB {
     
     /** The Constant SQL_TIMESTAMP. */
     static final String SQL_TIMESTAMP = "TIMESTAMP";
-    //static final String SQL_BOOLEAN = "BOOLEAN";
+
     /** The Constant SQL_CLOB. */
     static final String SQL_CLOB = "CLOB";
-    //static final String SQL_DATALINK = "DATALINK";
-    //static final String SQL_DISTINCT = "DISTINCT";
-    //static final String SQL_JAVA_OBJECT = "JAVA_OBJECT";
-    //static final String SQL_NULL = "NULL";
-    //static final String SQL_OTHER = "OTHER";
-    //static final String SQL_REF = "REF";
-    //static final String SQL_STRUCT = "STRUCT";
     
     /** The Constant PK. */
     private static final String PK = "PRIMARYKEY_INI";
@@ -167,13 +154,13 @@ public class GenericDB {
     private static final String INDEX = "#COLUMN_NAME# #ORDER#";
     
     /** The hm dialect. */
-    private HashMap hmDialect=null;
+    private HashMap<String, String> hmDialect=null;
     
     /** The hm sql type. */
-    private HashMap hmSQLType=null;
+    private HashMap<String, String> hmSQLType=null;
     
     /** The hm syntax. */
-    private HashMap hmSyntax=null;
+    private HashMap<String, HashMap<String, String>> hmSyntax=null;
 
     /**
      * Instantiates a new generic db.
@@ -264,7 +251,6 @@ public class GenericDB {
         StringTokenizer sto = null;
         String sqlScript = null;
         String query = null;
-        int x = 0;
         try
             {
                 sqlScript = getSQLScript(XML, dbname); 
@@ -287,7 +273,7 @@ public class GenericDB {
                         try
                         {
                             if(query.trim().length()>0)
-                                x = st.executeUpdate(query);
+                                st.executeUpdate(query);
                         }
                         catch(Exception e)
                         {
@@ -326,7 +312,7 @@ public class GenericDB {
         {
             loadSyntax();
         }
-        return (String) ((HashMap) hmSyntax.get(dbtype.toUpperCase())).get(attr);
+        return hmSyntax.get(dbtype.toUpperCase()).get(attr);
     }
 
     /**
@@ -384,11 +370,8 @@ public class GenericDB {
      * @throws Exception the exception
      */
     public String getSchema(String strXML, String DBName) throws Exception {
-        StringBuffer strBuff = new StringBuffer();
+        StringBuilder strBuff = new StringBuilder();
         String LFCR = " ";
-        
-//        if(!validateXML(strXML))
-//          throw new Exception("Error en la definición del XML de la base de datos. GenericDB.getSchema()");
         
         if (DBName == null) {
             return null;
@@ -430,8 +413,8 @@ public class GenericDB {
 
                                 tmpVal = col.getAttribute("type").trim().toUpperCase();
 
-                                String tmpSize = col.getAttribute("size");  // para el tipo de datos correspondiente dependiendo el tama?o.
-                                if (tmpVal != null && tmpSize != null && tmpSize.trim().length() > 0) //&&col.getAttribute("size")!=null
+                                String tmpSize = col.getAttribute("size");  // para el tipo de datos correspondiente dependiendo el tamaño.
+                                if (tmpVal != null && tmpSize != null && tmpSize.trim().length() > 0)
                                 {
                                     int codigo = 0;
                                     String tipocol = "";
@@ -672,7 +655,6 @@ public class GenericDB {
                                     else
                                     {
                                         codigo = getSQLType(tmpVal);
-                                        //System.out.println("DBName:"+DBName);
                                         tipocol = dialect.getTypeName(codigo);
                                         tmpCol = tmpCol.replaceAll("#TYPE#", tipocol);
                                     }
@@ -937,7 +919,7 @@ public class GenericDB {
      * 
      * @return the dialects
      */
-    public HashMap getDialects()
+    public HashMap<String, String> getDialects()
     {
         if(hmDialect==null)
         {
@@ -951,7 +933,7 @@ public class GenericDB {
      */
     private void loadDialects()
     {
-        hmDialect = new HashMap();
+        hmDialect = new HashMap<>();
 
         hmDialect.put(DB_MYSQL, "org.hibernate.dialect.MySQLDialect");
         hmDialect.put(DB_ORACLE, "org.hibernate.dialect.Oracle9iDialect");
@@ -972,38 +954,21 @@ public class GenericDB {
      */
     private void loadSQLTypes()
     {
-        hmSQLType = new HashMap();
+        hmSQLType = new HashMap<>();
 
-        //hmSQLType.put(SQL_ARRAY, Integer.toString(java.sql.Types.ARRAY));
         hmSQLType.put(SQL_BIGINT, Integer.toString(java.sql.Types.BIGINT));
-        //hmSQLType.put(SQL_BINARY, Integer.toString(java.sql.Types.BINARY));
         hmSQLType.put(SQL_BIT, Integer.toString(java.sql.Types.BIT));
         hmSQLType.put(SQL_BLOB, Integer.toString(java.sql.Types.BLOB));
-        //hmSQLType.put(SQL_BOOLEAN, Integer.toString(java.sql.Types.BOOLEAN)); 
         hmSQLType.put(SQL_CHAR, Integer.toString(java.sql.Types.CHAR));
         hmSQLType.put(SQL_CLOB, Integer.toString(java.sql.Types.CLOB));
-        //hmSQLType.put(SQL_DATALINK, Integer.toString(java.sql.Types.DATALINK));
         hmSQLType.put(SQL_DATE, Integer.toString(java.sql.Types.DATE));
-        //hmSQLType.put(SQL_DECIMAL, Integer.toString(java.sql.Types.DECIMAL));
-        //hmSQLType.put(SQL_DISTINCT, Integer.toString(java.sql.Types.DISTINCT));
         hmSQLType.put(SQL_DOUBLE, Integer.toString(java.sql.Types.DOUBLE));
         hmSQLType.put(SQL_FLOAT, Integer.toString(java.sql.Types.FLOAT));
         hmSQLType.put(SQL_INTEGER, Integer.toString(java.sql.Types.INTEGER));
-        //hmSQLType.put(SQL_JAVA_OBJECT, Integer.toString(java.sql.Types.JAVA_OBJECT));
-        //hmSQLType.put(SQL_LONGVARBINARY, Integer.toString(java.sql.Types.LONGVARBINARY));
-        //hmSQLType.put(SQL_LONGVARCHAR, Integer.toString(java.sql.Types.LONGVARCHAR));
-        //hmSQLType.put(SQL_NULL, Integer.toString(java.sql.Types.NULL));
         hmSQLType.put(SQL_NUMERIC, Integer.toString(java.sql.Types.NUMERIC));
-        //hmSQLType.put(SQL_OTHER, Integer.toString(java.sql.Types.OTHER));
-        //hmSQLType.put(SQL_REAL, Integer.toString(java.sql.Types.REAL));
-        //hmSQLType.put(SQL_REF, Integer.toString(java.sql.Types.REF));
         hmSQLType.put(SQL_SMALLINT, Integer.toString(java.sql.Types.SMALLINT));
-        //hmSQLType.put(SQL_STRUCT, Integer.toString(java.sql.Types.STRUCT));
-        //hmSQLType.put(SQL_TEXT, Integer.toString(java.sql.Types.LONGVARCHAR));
         hmSQLType.put(SQL_TIME, Integer.toString(java.sql.Types.TIME));
         hmSQLType.put(SQL_TIMESTAMP, Integer.toString(java.sql.Types.TIMESTAMP));
-        //hmSQLType.put(SQL_TINYINT, Integer.toString(java.sql.Types.TINYINT));
-        //hmSQLType.put(SQL_VARBINARY, Integer.toString(java.sql.Types.VARBINARY));
         hmSQLType.put(SQL_VARCHAR, Integer.toString(java.sql.Types.VARCHAR));
     }
     
@@ -1011,63 +976,63 @@ public class GenericDB {
      * Load syntax.
      */
     private void loadSyntax() {
-        hmSyntax = new HashMap();
+        hmSyntax = new HashMap<>();
 
-        HashMap hmMySQL = new HashMap();
+        HashMap<String, String> hmMySQL = new HashMap<>();
         hmMySQL.put(COLUMN, "#COLUMN_NAME# #TYPE# #SIGNED# #NULL# #DEFAULT#");
         hmMySQL.put(PK, "ALTER TABLE #TABLE_NAME# ADD PRIMARY KEY ( ");
         hmMySQL.put(INDTYPE, "UNIQUE|FULLTEXT|SPATIAL");
         hmMySQL.put(INDORDER, "ASC|DESC");
 
-        HashMap hmOracle = new HashMap();
+        HashMap<String, String> hmOracle = new HashMap<>();
         hmOracle.put(COLUMN, "#COLUMN_NAME# #TYPE# #DEFAULT# #NULL#");
         hmOracle.put(PK, "ALTER TABLE #TABLE_NAME# ADD PRIMARY KEY ( ");
         hmOracle.put(INDTYPE, "UNIQUE|BITMAP");
         hmOracle.put(INDORDER, "ASC|DESC");
 
-        HashMap hmInformix = new HashMap();
+        HashMap<String, String> hmInformix = new HashMap<>();
         hmInformix.put(COLUMN, "#COLUMN_NAME# #TYPE# #DEFAULT# #NULL#");
         hmInformix.put(PK, "ALTER TABLE #TABLE_NAME# ADD PRIMARY KEY ( ");
         hmInformix.put(INDTYPE, "UNIQUE|CLUSTER");
         hmInformix.put(INDORDER, "ASC|DESC");
 
-        HashMap hmSQLSERVER = new HashMap();
+        HashMap<String, String> hmSQLSERVER = new HashMap<>();
         hmSQLSERVER.put(COLUMN, "#COLUMN_NAME# #TYPE# #DEFAULT# #NULL#");
         hmSQLSERVER.put(PK, "ALTER TABLE #TABLE_NAME# ADD PRIMARY KEY ( ");
         hmSQLSERVER.put(INDTYPE, "UNIQUE");
         hmSQLSERVER.put(INDORDER, "ASC|DESC");
 
-        HashMap hmHSQL = new HashMap();
+        HashMap<String, String> hmHSQL = new HashMap<>();
         hmHSQL.put(COLUMN, "#COLUMN_NAME# #TYPE# #DEFAULT# #NULL#");
         hmHSQL.put(PK, "ALTER TABLE #TABLE_NAME# ADD CONSTRAINT #CNAME# PRIMARY KEY ( ");
         hmHSQL.put(INDTYPE, "UNIQUE");
         hmHSQL.put(INDORDER, "DESC");
 
-        HashMap hmPOINTBASE = new HashMap();
+        HashMap<String, String> hmPOINTBASE = new HashMap<>();
         hmPOINTBASE.put(COLUMN, "#COLUMN_NAME# #TYPE# #DEFAULT# #NULL#");
         hmPOINTBASE.put(PK, "ALTER TABLE #TABLE_NAME# ADD CONSTRAINT #CNAME# PRIMARY KEY ( ");
         hmPOINTBASE.put(INDTYPE, "UNIQUE");
         hmPOINTBASE.put(INDORDER, "ASC|DESC");
 
-        HashMap hmPOSTGRESSQL = new HashMap();
+        HashMap<String, String> hmPOSTGRESSQL = new HashMap<>();
         hmPOSTGRESSQL.put(COLUMN, "#COLUMN_NAME# #TYPE# #DEFAULT# #NULL#");
         hmPOSTGRESSQL.put(PK, "ALTER TABLE #TABLE_NAME# ADD PRIMARY KEY ( ");
         hmPOSTGRESSQL.put(INDTYPE, "UNIQUE");
         hmPOSTGRESSQL.put(INDORDER, "ASC|DESC");
 
-        HashMap hmDB2 = new HashMap();
+        HashMap<String, String> hmDB2 = new HashMap<>();
         hmDB2.put(COLUMN, "#COLUMN_NAME# #TYPE# #NULL# #DEFAULT#");
         hmDB2.put(PK, "ALTER TABLE #TABLE_NAME# ADD PRIMARY KEY ( ");
         hmDB2.put(INDTYPE, "UNIQUE");
         hmDB2.put(INDORDER, "ASC|DESC");
 
-        HashMap hmSYBASE = new HashMap();
+        HashMap<String, String> hmSYBASE = new HashMap<>();
         hmSYBASE.put(COLUMN, "#COLUMN_NAME# #TYPE# #NULL# #DEFAULT#");
         hmSYBASE.put(PK, "ALTER TABLE #TABLE_NAME# ADD CONSTRAINT #CNAME# PRIMARY KEY ( ");
         hmSYBASE.put(INDTYPE, "UNIQUE");
         hmSYBASE.put(INDORDER, "ASC|DESC");
         
-        HashMap hmDERBY = new HashMap();
+        HashMap<String, String> hmDERBY = new HashMap<>();
         hmDERBY.put(COLUMN, "#COLUMN_NAME# #TYPE# #DEFAULT# #NULL#");
         hmDERBY.put(PK, "ALTER TABLE #TABLE_NAME# ADD CONSTRAINT #CNAME# PRIMARY KEY ( ");
         hmDERBY.put(INDTYPE, "UNIQUE");

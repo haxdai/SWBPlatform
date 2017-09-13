@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -18,13 +18,13 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ *  http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.util;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class ObjectEncoder.
  */
@@ -35,7 +35,7 @@ public class ObjectEncoder
     private String name=null;
     
     /** The list. */
-    private ArrayList list=new ArrayList();
+    private ArrayList<String> list=new ArrayList<>();
     
     /**
      * Creates a new instance of ObjectEncoder.
@@ -97,7 +97,7 @@ public class ObjectEncoder
     public String replaceStringChars(String str)
     {
         if(str==null)return "_NULL_"; 
-        StringBuffer ret=new StringBuffer();
+        StringBuilder ret=new StringBuilder();
         for(int x=0;x<str.length();x++)
         {
             char ch=str.charAt(x);
@@ -127,9 +127,9 @@ public class ObjectEncoder
     @Override
     public String toString()
     {
-        StringBuffer ret=new StringBuffer();
+        StringBuilder ret=new StringBuilder();
         ret.append(name+"(");
-        Iterator it=list.iterator();
+        Iterator<String> it=list.iterator();
         while(it.hasNext())
         {
             ret.append("\""+it.next()+"\"");

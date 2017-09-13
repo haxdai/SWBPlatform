@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -18,7 +18,7 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ *  http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.platform;
 
@@ -27,18 +27,23 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.StringTokenizer;
+import java.util.Timer;
+import java.util.TimerTask;
+
 import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.SWBUtils;
 import org.semanticwb.base.SWBObserver;
-//import org.semanticwb.platform.SWBMessageProcesor;
 
-
-// TODO: Auto-generated Javadoc
 /**
- * Objeto: Se encarga de la recepcion y envio de mensajes UDP, para la sincronizacion de servidores.
- * Object: One is in charge of the reception and shipment of messages UDP, for the synchronization of servers.
+ * Se encarga de la recepcion y envio de mensajes UDP, para la sincronizacion de servidores.
+ * In charge of the reception and shipment of messages UDP, for the synchronization of servers.
  * @author Javier Solis Gonzalez
  */
 public class SWBMessageCenter
@@ -49,28 +54,25 @@ public class SWBMessageCenter
 
     //private WeakHashMap observers=new WeakHashMap();
     /** The observers. */
-    private HashMap observers = new HashMap();
+    private HashMap<String, SWBObserver> observers = new HashMap<>();
 
     /** The sa. */
-    private boolean sa = true;                        //standalon
+    private boolean sa = true; //standalone
 
     /** The server. */
     private SWBMessageServer server = null;
     
-//    /** The procesor. */
-//    private SWBMessageProcesor procesor = null;
-
     /** The sock. */
     private DatagramSocket sock = null;
     
     /** The packets. */
-    private ArrayList packets=new ArrayList();
-    //private DatagramPacket packet = null;
+    private ArrayList<DatagramPacket> packets=new ArrayList<>();
+
     /** The addr. */
     private InetAddress addr=null;
 
     /** The messages. */
-    private LinkedList messages = null;
+    private LinkedList<String> messages = null;
 
     /** The df. */
     private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -94,7 +96,7 @@ public class SWBMessageCenter
     public SWBMessageCenter()
     {
         log.event("Initializing SWBMessageCenter...");
-        messages = new LinkedList();
+        messages = new LinkedList<>();
     }
 
     /**
@@ -117,14 +119,6 @@ public class SWBMessageCenter
             String confCS = SWBPlatform.getEnv("swb/clientServer");
             if (!confCS.equalsIgnoreCase("SASC")) sa = false;
 
-            //System.out.println("before procesor start...");
-
-//            procesor = new SWBMessageProcesor(this);
-//            procesor.init();
-
-            //System.out.println("after procesor start...");
-            
-            
             if (!sa)
             {
                 String localAddr=SWBPlatform.getEnv("swb/localMessageAddress"); 
@@ -134,11 +128,11 @@ public class SWBMessageCenter
                 {
                     int i=localAddr.lastIndexOf(":"); //MAPS74 Ajuste para IPV6
                     String ipaddr=localAddr.substring(0, i);
-                    int port=Integer.parseInt(localAddr.substring(i+1)); //System.out.println("ipadd1:"+ipaddr+" "+port);
+                    int port=Integer.parseInt(localAddr.substring(i+1));
                     
                     i=serverAddr.lastIndexOf(":"); //MAPS74 Ajuste para IPV6
                     String sipaddr=serverAddr.substring(0, i);
-                    int sport=Integer.parseInt(serverAddr.substring(i+1));//System.out.println("ipadd2:"+sipaddr+" "+sport);
+                    int sport=Integer.parseInt(serverAddr.substring(i+1));
                     
                     InetAddress saddr=null;
                     try
@@ -158,16 +152,12 @@ public class SWBMessageCenter
                         log.error("SWBMessage Server IP Error:",e);
                     }                   
                     
-                    //System.out.println("addr:"+addr+" "+port);
-                    //System.out.println("saddr:"+saddr+" "+sport);
-                    
                     addAddress(addr, port);
                     addAddress(saddr, sport);                                        
                     
                     String message = "ini|hel|"+addr.getHostAddress()+":"+port;
                     
                     synchMess = "syn|hel|"+addr.getHostAddress()+":"+port;
-                    
                     
                     server = new SWBMessageServer(this,addr,port);
                     server.start();               
@@ -187,13 +177,8 @@ public class SWBMessageCenter
                     String message = "ini|MessageServer Iniciado...";
                     byte[] data = message.getBytes();
 
-                    //System.out.println("before server start...");
-
                     server = new SWBMessageServer(this);
                     server.start();
-
-                    //System.out.println("after server start...");
-
 
                     try
                     {
@@ -219,7 +204,6 @@ public class SWBMessageCenter
                     }else
                     {
                         DatagramPacket packet=null;
-                        String ip=null;
                         int aport;
                         boolean fp=false;
                         StringTokenizer st=new StringTokenizer(sendAddr,":,;",true);
@@ -249,7 +233,7 @@ public class SWBMessageCenter
                                 }
                             }catch(Exception e){log.error(e);}
                         }
-                        Iterator it=packets.iterator();
+                        Iterator<DatagramPacket> it=packets.iterator();
                         while(it.hasNext())
                         {
                             DatagramPacket apacket=(DatagramPacket)it.next();
@@ -257,17 +241,6 @@ public class SWBMessageCenter
                         }                    
                     }
 
-                    /*
-                    if (addr != null)
-                    {
-                        DatagramSocket aux = new DatagramSocket();   //optener una puerto de salida valido...
-                        int x = aux.getLocalPort();
-                        aux.close();
-                        sock = new DatagramSocket(x, addr);
-                    } else
-                        sock = new DatagramSocket();
-                    sock.send(packet);
-                    */
                     sendMessage(message);
                 }
             }
@@ -294,18 +267,16 @@ public class SWBMessageCenter
     {
         if (!sa && packets.size()>0)
         {
-            //System.out.println("SendMessage: "+message +" to "+packet.getAddress().getHostAddress());
             try
             {
                 if (sock != null)
                 {
                     byte[] data = message.getBytes();
-                    Iterator it=packets.iterator();
+                    Iterator<DatagramPacket> it=packets.iterator();
                     while(it.hasNext())
                     {
-                        DatagramPacket refPacket=(DatagramPacket)it.next();
+                        DatagramPacket refPacket=it.next();
                         DatagramPacket packet=new DatagramPacket(data, data.length, refPacket.getAddress(), refPacket.getPort());
-                        //packet.setData(data, 0, data.length);
                         sock.send(packet);
                     }
                 } else
@@ -322,12 +293,11 @@ public class SWBMessageCenter
                     }
                     byte[] data = message.getBytes();
 
-                    Iterator it=packets.iterator();
+                    Iterator<DatagramPacket> it=packets.iterator();
                     while(it.hasNext())
                     {
                         DatagramPacket refPacket=(DatagramPacket)it.next();
                         DatagramPacket packet=new DatagramPacket(data, data.length, refPacket.getAddress(), refPacket.getPort());
-                        //packet.setData(data, 0, data.length);
                         sock.send(packet);
                     }
                 }
@@ -349,7 +319,6 @@ public class SWBMessageCenter
      */
     public void incomingMessage(String message, String addr)
     {
-        //Date dt = new Date(); death storage
         StringBuilder logbuf = new StringBuilder(message.length() + 20);
         logbuf.append(message.substring(0, 4));
         logbuf.append(df.format(new Date()));
@@ -424,7 +393,7 @@ public class SWBMessageCenter
      */
     public Iterator getObservers()
     {
-        return new ArrayList(observers.values()).iterator();
+        return new ArrayList<SWBObserver>(observers.values()).iterator();
     }
 
     /**
@@ -435,7 +404,7 @@ public class SWBMessageCenter
      */
     public SWBObserver getObserver(String key)
     {
-        return (SWBObserver) observers.get(key);
+        return observers.get(key);
     }
 
     /**
@@ -473,16 +442,6 @@ public class SWBMessageCenter
             return localaddr;
     }
 
-//    /**
-//     * Gets the message procesor.
-//     * 
-//     * @return the message procesor
-//     */
-//    public SWBMessageProcesor getMessageProcesor()
-//    {
-//        return procesor;
-//    }
-
     /**
      * Gets the message server.
      * 
@@ -495,7 +454,6 @@ public class SWBMessageCenter
     
     public synchronized boolean addAddress(InetAddress addr, int port)
     {  
-        //System.out.println("addAddress:"+addr+" "+port);
         Iterator<DatagramPacket> it=packets.iterator();
         
         boolean contains=false;
@@ -506,21 +464,19 @@ public class SWBMessageCenter
             {
                 contains=true;
             }
-            //System.out.println("--Addr:"+datagramPacket.getAddress().getHostAddress()+" "+datagramPacket.getPort());
         }
         
         if(!contains)
         {
             byte[] data = "".getBytes();
             packets.add(new DatagramPacket(data, data.length, addr, port));
-            //System.out.println("--Addr:"+addr.getHostAddress()+" "+port);
         }    
         return !contains;
     }
     
     public String getListAddress()
     {
-        StringBuffer ret=new StringBuffer();
+        StringBuilder ret=new StringBuilder();
         Iterator<DatagramPacket> it=packets.iterator();
         while (it.hasNext())
         {

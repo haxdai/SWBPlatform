@@ -22,18 +22,25 @@
  */
 package org.semanticwb.xforms.ui.container;
 
+import java.util.HashMap;
+import java.util.Iterator;
+
+import org.semanticwb.Logger;
+import org.semanticwb.SWBUtils;
 import org.semanticwb.xforms.drop.RDFElement;
 import org.semanticwb.xforms.lib.WBXformsContainer;
-import java.util.*;
-import org.semanticwb.xforms.ui.*;
-import org.semanticwb.SWBUtils;
-import org.semanticwb.Logger;
+import org.semanticwb.xforms.ui.XFButton;
+import org.semanticwb.xforms.ui.XFOutput;
+import org.semanticwb.xforms.ui.XFSecret;
+import org.semanticwb.xforms.ui.XFText;
+import org.semanticwb.xforms.ui.XFTextArea;
+import org.semanticwb.xforms.ui.XFTrigger;
+import org.semanticwb.xforms.ui.XFUpload;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class XFGroup.
  * 
- * @author  jorge.jimenez
+ * @author Jorge Jiménez {jorge.jimenez}
  */
 public class XFGroup extends WBXformsContainer 
 {
@@ -158,7 +165,7 @@ public class XFGroup extends WBXformsContainer
      */
     @Override
     public String getXml() {
-        StringBuffer strbXml=new StringBuffer();
+        StringBuilder strbXml=new StringBuilder();
         try {
             strbXml.append("<group ");
             

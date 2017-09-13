@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -18,22 +18,22 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ *  http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.model;
 
 import java.util.HashMap;
 import java.util.Iterator;
+
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.base.util.URLEncoder;
 import org.semanticwb.platform.SemanticObject;
 import org.semanticwb.platform.SemanticProperty;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class FormElementURL.
  * 
- * @author javier.solis
+ * @author Javier Solís {javier.solis}
  */
 public class FormElementURL
 {
@@ -104,7 +104,7 @@ public class FormElementURL
      */
     public FormElementURL(FormElement frmele, SemanticObject obj, SemanticProperty prop, String urltype, String codetype, String mode, String lang, String contentType, String characterEncoding)
     {
-        params=new HashMap();
+        params=new HashMap<>();
         this.frmele=frmele;
         this.obj=obj;
         this.prop=prop;
@@ -146,7 +146,7 @@ public class FormElementURL
     @Override
     public String toString()
     {
-        StringBuffer ret=new StringBuffer();
+        StringBuilder ret=new StringBuilder();
         ret.append(SWBPlatform.getContextPath()+"/frmprocess");
         ret.append("?_swb_frmele="+frmele.getSemanticObject().getEncodedURI());
         if(obj!=null && obj.getURI()!=null)ret.append("&_swb_obj="+obj.getEncodedURI());

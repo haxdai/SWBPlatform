@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -18,7 +18,7 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ *  http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.model.base;
 
@@ -30,7 +30,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map.Entry;
+
 import javax.servlet.http.HttpServletRequest;
+
 import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.SWBUtils;
@@ -42,11 +44,9 @@ import org.semanticwb.platform.SemanticModel;
 import org.semanticwb.platform.SemanticObject;
 import org.semanticwb.platform.SemanticProperty;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class FormElementBase.
- * 
- * @author Jei
+ * Clase base para todos los elementos de forma utilizados en SemanticWebBuilder.
+ * @author Javier Solís
  */
 public class FormElementBase extends GenericObjectBase implements FormElement, GenericObject
 {
@@ -55,7 +55,7 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
     private static Logger log = SWBUtils.getLogger(FormElementBase.class);
 
     /** The attributes. */
-    protected HashMap attributes=null;
+    protected HashMap<String, String> attributes=null;
     
     /** The model. */
     private SemanticModel model=null;
@@ -63,8 +63,6 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
     /** The filter html tags. */
     private boolean filterHTMLTags=true;
 
-    //private String label=null;
-    
     private static SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");    
 
     private Object formMgr=null;
@@ -77,7 +75,7 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
     public FormElementBase(SemanticObject obj)
     {
         super(obj);
-        attributes=new HashMap();
+        attributes=new HashMap<>();
     }
 
     /* (non-Javadoc)
@@ -95,21 +93,14 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
     @Override
     public void process(HttpServletRequest request, SemanticObject obj, SemanticProperty prop, String propName)
     {
-        String smode=request.getParameter("smode");
-        //System.out.println("process...:"+obj.getURI()+" "+prop.getURI()+" "+smode);
-        //if(smode!=null && smode.equals("create") && !prop.isRequired())return;
         boolean needDP=!(propName.indexOf('.')>0);
         if(needDP && prop.getDisplayProperty()==null)return;
         if(prop.isDataTypeProperty())
         {
             String value=request.getParameter(propName);
             String old=obj.getProperty(prop);
-            //System.out.println("com:"+old+"-"+value+"-");
             if(prop.isBoolean())
             {
-                //System.out.println("prop:"+prop);
-                //System.out.println("value:"+value);
-                //System.out.println("old:"+old);
                 if(value!=null && (value.equals("true") || value.equals("on")) && (old==null || old.equals("false")))obj.setBooleanProperty(prop, true);
                 else if((value==null || value.equals("false")) && old!=null && old.equals("true")) obj.setBooleanProperty(prop, false);
             } else if (prop.isDateTime()) {
@@ -132,11 +123,6 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
                 {
                     if(value.length()>0 && !value.equals(old))
                     {
-                        //System.out.println("old:"+old+" value:"+value);
-//                        for(int x=0;x<value.length();x++)
-//                        {
-//                            System.out.print((int)value.charAt(x)+" ");
-//                        }
                         if(prop.isFloat())obj.setFloatProperty(prop, Float.parseFloat(value));
                         if(prop.isDouble())obj.setDoubleProperty(prop, Double.parseDouble(value));
                         if(prop.isInt() || prop.isShort() || prop.isByte())obj.setIntProperty(prop, Integer.parseInt(value));
@@ -166,7 +152,6 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
             String uri=request.getParameter(name);
             if(uri!=null)
             {
-                //System.out.println("**** obj:"+obj+" uri:"+uri+" name:"+name);
                 if(name.startsWith("has"))
                 {
                     //TODO:
@@ -175,7 +160,6 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
                     String ouri="";
                     SemanticObject old=obj.getObjectProperty(prop);
                     if(old!=null)ouri=old.getURI();
-                    //System.out.println("uri:"+uri+" "+ouri);
                     if(!(""+uri).equals(""+ouri))
                     {
                         SemanticObject aux=null;
@@ -183,7 +167,6 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
                         {
                             aux=SWBPlatform.getSemanticMgr().getOntology().getSemanticObject(uri);
                         }
-                        //System.out.println("uri:"+uri+" ("+aux+")");
                         if(aux!=null)
                         {
                             obj.setObjectProperty(prop, aux);
@@ -227,11 +210,11 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
      */
     public String getAttributes()
     {
-        StringBuffer ret=new StringBuffer();
+        StringBuilder ret=new StringBuilder();
         Iterator<Entry<String,String>> it=attributes.entrySet().iterator();
         while(it.hasNext())
         {
-            Entry entry=it.next();
+            Entry<String,String> entry=it.next();
             ret.append(entry.getKey()+"="+"\""+entry.getValue()+"\"");
             if(it.hasNext())ret.append(" ");
         }
@@ -318,9 +301,7 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
     {
         String ret="";
         String name=propName;
-        //String label=this.label;
         if(label==null)label=prop.getDisplayName(lang);
-        SemanticObject sobj=prop.getDisplayProperty();
         boolean required=prop.isRequired();
 
         String reqtxt=" &nbsp;";
@@ -350,11 +331,6 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
     public void process(HttpServletRequest request, SemanticObject obj, SemanticProperty prop) {
         process(request, obj, prop, prop.getName());
     }
-
-//    public void setLabel(String label)
-//    {
-//        this.label=label;
-//    }
 
     @Override
     public Object getFormMgr() {

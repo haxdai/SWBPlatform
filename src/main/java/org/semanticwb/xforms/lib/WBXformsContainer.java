@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -18,31 +18,30 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ *  http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.xforms.lib;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class WBXformsContainer.
  * 
- * @author  jorge.jimenez
+ * @author  Jorge Jiménez {jorge.jimenez}
  */
 
 public abstract class WBXformsContainer extends XformsBaseImp
 {
     
     /** The formelements. */
-    protected ArrayList formelements;
+    protected ArrayList<Object> formelements;
     
     /**
      * Instantiates a new wB xforms container.
      */
     public WBXformsContainer() {
-        formelements = new ArrayList();
+        formelements = new ArrayList<>();
     }
     
     /**
@@ -60,8 +59,8 @@ public abstract class WBXformsContainer extends XformsBaseImp
      * @return the xform
      */
     public String getXform() {
-        StringBuffer strb = new StringBuffer();
-        Iterator iobj = formelements.iterator();
+        StringBuilder strb = new StringBuilder();
+        Iterator<Object> iobj = formelements.iterator();
         while(iobj.hasNext())
         {
             if(!iobj.hasNext()){
@@ -82,8 +81,8 @@ public abstract class WBXformsContainer extends XformsBaseImp
       * @return the xform binds
       */
      public String getXformBinds() {
-        StringBuffer strb = new StringBuffer();
-        Iterator iobj = formelements.iterator();
+        StringBuilder strb = new StringBuilder();
+        Iterator<Object> iobj = formelements.iterator();
         do {
             if(!iobj.hasNext()){
                 break;
