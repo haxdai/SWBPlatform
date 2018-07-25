@@ -128,7 +128,9 @@ public class CodeGenerator {
     /**
      * Instantiates a new code generator.
      */
-    public CodeGenerator() { }
+    public CodeGenerator() {
+
+    }
 
     /**
      * Tells the {@CodeGenerator} to output source code for virtual (compiled in memory) classes.
@@ -231,27 +233,27 @@ public class CodeGenerator {
     /**
      * Checks whether a class definition in the input ontology meets the conditions to generate source code. Throws an exception if one of the conditions is not met.
      *
-     * @param clazz the {@SemanticClass} wrapper object from the ontology class definition.
+     * @param sclass the {@SemanticClass} wrapper object from the ontology class definition.
      * @throws CodeGeneratorException the code generator exception
      */
-    private void checkClass(SemanticClass clazz) throws CodeGeneratorException {
-        if(clazz.getCodePackage()==null) {
-            throw new CodeGeneratorException("The code package for Semantic class " + clazz.getURI() + " is not defined\r\n");
+    private void checkClass(SemanticClass sclass) throws CodeGeneratorException {
+        if(sclass.getCodePackage() == null) {
+            throw new CodeGeneratorException("The code package for Semantic class " + sclass.getURI() + " is not defined\r\n");
         }
-        Iterator<SemanticClass> tpcit = clazz.listSuperClasses(true);
+        Iterator<SemanticClass> tpcit = sclass.listSuperClasses(true);
         while (tpcit.hasNext()) {
             SemanticClass tpc = tpcit.next();
-            if (clazz.isSWBInterface() && tpc.isSWBClass()) {
-                throw new CodeGeneratorException("The Semantic class " + clazz.getURI() + " is an interface and its parent is a class\r\n");
+            if (sclass.isSWBInterface() && tpc.isSWBClass()) {
+                throw new CodeGeneratorException("The Semantic class " + sclass.getURI() + " is an interface and its parent is a class\r\n");
             }
         }
-        Iterator<SemanticProperty> properties=clazz.listProperties();
+        Iterator<SemanticProperty> properties=sclass.listProperties();
         while(properties.hasNext()) {
             SemanticProperty tpp=properties.next();
             if(tpp.isObjectProperty()) {
                 try {
                     if (tpp.isString() || tpp.isXML() || tpp.isInt() || tpp.isFloat() || tpp.isDouble() || tpp.isLong() || tpp.isByte() || tpp.isShort() || tpp.isBoolean() || tpp.isDateTime() || tpp.isDate()) {
-                        throw new CodeGeneratorException("The property "+tpp+" for semantic class " + clazz + " is defined as Object Property, but the type is "+ tpp.getRange() +" \r\n");
+                        throw new CodeGeneratorException("The property "+tpp+" for semantic class " + sclass + " is defined as Object Property, but the type is "+ tpp.getRange() +" \r\n");
                     }
                 } catch(Exception e) {
                     throw new CodeGeneratorException("The property "+tpp+" has an error\r\n",e);
@@ -260,7 +262,7 @@ public class CodeGenerator {
             if(tpp.isDataTypeProperty() && !(tpp.isBinary() ||  tpp.isString() || tpp.isXML() || tpp.isInt() ||
                     tpp.isFloat() || tpp.isDouble() || tpp.isLong() || tpp.isByte() || tpp.isShort() ||
                     tpp.isBoolean() || tpp.isDateTime() || tpp.isDate())) {
-                throw new CodeGeneratorException("The property "+tpp+" for semantic class " + clazz + " is defined as DataType Property, but the type is "+ tpp.getRange() +" \r\n");
+                throw new CodeGeneratorException("The property "+tpp+" for semantic class " + sclass + " is defined as DataType Property, but the type is "+ tpp.getRange() +" \r\n");
             }
         }
     }
@@ -282,6 +284,7 @@ public class CodeGenerator {
                 checkClass(tpc);
             }
         }
+
         tpcit = mgr.getVocabulary().listSemanticClasses();
         while (tpcit.hasNext()) {
             SemanticClass tpc = tpcit.next();
@@ -336,7 +339,7 @@ public class CodeGenerator {
      * @param isextends whether to prefix the result string with "extends". Defaults to "implements".
      * @return the interfaces as a string
      */
-    private String getInterfacesAsString(SemanticClass tpc, boolean isextends) {
+    private String  getInterfacesAsString(SemanticClass tpc, boolean isextends) {
         StringBuilder interfaces = new StringBuilder();
         Iterator<SemanticClass> it = tpc.listSuperClasses();
         while (it.hasNext()) {
@@ -508,10 +511,9 @@ public class CodeGenerator {
 
             javaClassContent.append(ENTER);
 
-            javaClassContent.append("   /**"+ ENTER);
-            javaClassContent.append("   * Constructs a ").append(tpc.getUpperClassName()).append(" with a SemanticObject"+ ENTER);
-            javaClassContent.append("   * @param base The SemanticObject with the properties for the ").append(tpc.getUpperClassName()).append(""+ ENTER);
-            javaClassContent.append("   */"+ ENTER);
+            javaClassContent.append(buildJavaDocBlock(1, "Constructor.",
+                    "Creates a "+tpc.getUpperClassName()+ " with a SemanticObject",
+                    "@param base The SemanticObject with the properties for the "+tpc.getUpperClassName()));
 
             javaClassContent.append("    public ").append(tpc.getUpperClassName()).append("("+SEMANTIC_OBJECT_FULL_NAME+" base)" + ENTER);
             javaClassContent.append("    {" + ENTER);
@@ -549,8 +551,6 @@ public class CodeGenerator {
             if (parent.isSWBSemanticResource()) {
                 exts = parent.getCanonicalName();
                 break;
-            } else {
-                parent = null;
             }
         }
         dir = new File(dir.getPath() + File.separatorChar + "base");
@@ -602,10 +602,9 @@ public class CodeGenerator {
 
         javaClassContent.append(ENTER);
 
-        javaClassContent.append("   /**"+ ENTER);
-        javaClassContent.append("   * Constructs a ").append(tpc.getUpperClassName()).append("Base with a SemanticObject"+ ENTER);
-        javaClassContent.append("   * @param base The SemanticObject with the properties for the ").append(tpc.getUpperClassName()).append(""+ ENTER);
-        javaClassContent.append("   */"+ ENTER);
+        javaClassContent.append(buildJavaDocBlock(1, "Constructor.",
+                "Creates a "+tpc.getUpperClassName()+"Base with a SemanticObject",
+                "@param base The SemanticObject with the properties for the "+tpc.getUpperClassName()));
 
         javaClassContent.append("    public ").append(tpc.getUpperClassName()).append("Base("+SEMANTIC_OBJECT_FULL_NAME+" base)" + ENTER);
         javaClassContent.append("    {" + ENTER);
@@ -614,9 +613,7 @@ public class CodeGenerator {
 
         javaClassContent.append(ENTER);
 
-        javaClassContent.append("    /*" + ENTER);
-        javaClassContent.append("     * @see java.lang.Object#hashCode()" + ENTER);
-        javaClassContent.append("     */" + ENTER);
+        javaClassContent.append(buildJavaDocBlock(1, "@see java.lang.Object#hashCode()"));
         javaClassContent.append("    @Override" + ENTER);
         javaClassContent.append("    public int hashCode() " + ENTER);
         javaClassContent.append("    {" + ENTER);
@@ -625,9 +622,7 @@ public class CodeGenerator {
 
         javaClassContent.append(ENTER);
 
-        javaClassContent.append("    /*" + ENTER);
-        javaClassContent.append("     * @see java.lang.Object#equals(java.lang.Object)" + ENTER);
-        javaClassContent.append("     */" + ENTER);
+        javaClassContent.append(buildJavaDocBlock(1, "@see java.lang.Object#equals(java.lang.Object)"));
         javaClassContent.append("    @Override" + ENTER);
         javaClassContent.append("    public boolean equals(Object obj) " + ENTER);
         javaClassContent.append("    {" + ENTER);
@@ -644,6 +639,29 @@ public class CodeGenerator {
     }
 
     /**
+     * Builds a String for a JavaDoc code block.
+     * @param indentlevel Indent level for the comment block.
+     * @param comment One or more comment lines to be added to the block.
+     * @return String with the JavaDoc code block.
+     */
+    private String buildJavaDocBlock(int indentlevel, String... comment) {
+        if (null != comment && comment.length > 0) {
+            String indentFormat = "%1$" + (indentlevel * 4) + "s";
+            String indentSpaces = String.format(indentFormat, "");
+
+            StringBuilder javadoc = new StringBuilder();
+            javadoc.append(indentSpaces).append("/**" + ENTER);
+            for (String c : comment) {
+                javadoc.append(indentSpaces).append("* ").append(c).append(" " + ENTER);
+            }
+            javadoc.append(indentSpaces).append("*/" + ENTER);
+            return javadoc.toString();
+        }
+
+        return null;
+    }
+
+    /**
      * Creates the source code for an object's base class.
      *
      * @param tpc the {@SemanticClass} wrapper for the object definition in the input ontology.
@@ -656,6 +674,7 @@ public class CodeGenerator {
         if (tpc.isSWBFormElement()) {
             exts = "org.semanticwb.model.base.FormElementBase";
         }
+
         SemanticClass parent = null;
         Iterator<SemanticClass> it = tpc.listSuperClasses(true);
         while (it.hasNext()) {
@@ -681,10 +700,11 @@ public class CodeGenerator {
         }
         javaClassContent.append(ENTER);
 
-        if(tpc.getComment(null)!=null) {
-            javaClassContent.append("   /**"+ ENTER);
-            javaClassContent.append("   * ").append(tpc.getComment(null)).append(" "+ ENTER);
-            javaClassContent.append("   */"+ ENTER);
+        if(tpc.getComment(null) != null) {
+            String javadoc = buildJavaDocBlock(1, tpc.getComment(null));
+            if (null != javadoc) {
+                javaClassContent.append(javadoc);
+            }
         }
 
         if(usesufix) {
@@ -710,22 +730,30 @@ public class CodeGenerator {
             if (!isInClass) {
                 SemanticClass range = tpp.getRangeClass();
                 if (range != null && !staticClasses.contains(range)) {
-                    if(range.getComment()!=null) {
-                        javaClassContent.append("   /**"+ ENTER);
-                        javaClassContent.append("   * ").append(range.getComment()).append(ENTER);
-                        javaClassContent.append("   */"+ ENTER);
+                    String propJavaDoc = null;
+                    if(range.getComment() != null) {
+                        propJavaDoc = buildJavaDocBlock(1, range.getComment());
+                        if (null != propJavaDoc) {
+                            javaClassContent.append(propJavaDoc);
+                        }
                     }
-                    javaClassContent.append("    public static final " + SEMANTIC_CLASS_FULL_NAME + " ").append(range.getPrefix()).append("_").append(range.getUpperClassName()).append("=" + SEMANTIC_PLATFORM_FULL_NAME + GET_SEMANTIC_CLASS).append(range.getURI()).append("\");" + ENTER);
+                    String propName = range.getPrefix() + "_" + range.getUpperClassName();
+                    String initialVal = SEMANTIC_PLATFORM_FULL_NAME + GET_SEMANTIC_CLASS + range.getURI() + "\")";
+                    javaClassContent.append("    public static final " + SEMANTIC_CLASS_FULL_NAME + " ").append(propName).append(" = ").append(initialVal).append(";" + ENTER);
                     staticClasses.add(range);
                 }
 
                 if (!staticProperties.contains(tpp)) {
+                    String propJavaDoc = null;
                     if(tpp.getComment() != null) {
-                        javaClassContent.append("   /**"+ ENTER);
-                        javaClassContent.append("   * ").append(tpp.getComment()).append(ENTER);
-                        javaClassContent.append("   */"+ ENTER);
+                        propJavaDoc = buildJavaDocBlock(1, tpp.getComment());
+                        if (null != propJavaDoc) {
+                            javaClassContent.append(propJavaDoc);
+                        }
                     }
-                    javaClassContent.append("    public static final " + SEMANTIC_PROPERTY_FULL_NAME + " ").append(tpp.getPrefix()).append("_").append(tpp.getName()).append("=" + SEMANTIC_PLATFORM_FULL_NAME + ".getSemanticMgr().getVocabulary().getSemanticProperty(\"").append(tpp.getURI()).append("\");" + ENTER);
+                    String propName = tpp.getPrefix()+"_"+tpp.getName();
+                    String initialVal = SEMANTIC_PLATFORM_FULL_NAME + ".getSemanticMgr().getVocabulary().getSemanticProperty(\"" + tpp.getURI() + "\")";
+                    javaClassContent.append("    public static final " + SEMANTIC_PROPERTY_FULL_NAME + " ").append(propName).append(" = ").append(initialVal).append(";" + ENTER);
                     staticProperties.add(tpp);
                 }
             }
@@ -736,32 +764,39 @@ public class CodeGenerator {
             while (classesOfModel.hasNext()) {
                 SemanticClass clazzOfModel = classesOfModel.next();
                 if (clazzOfModel != null && !staticClasses.contains(clazzOfModel)) {
+                    String clsJavaDoc = "";
                     if(clazzOfModel.getComment(null)!=null) {
-                        javaClassContent.append("   /**"+ ENTER);
-                        javaClassContent.append("   * ").append(clazzOfModel.getComment(null)).append(ENTER);
-                        javaClassContent.append("   */"+ ENTER);
+                        clsJavaDoc = buildJavaDocBlock(1, clazzOfModel.getComment(null));
+                        if (null != clsJavaDoc) {
+                            javaClassContent.append(clsJavaDoc);
+                        }
                     }
-                    javaClassContent.append("    public static final " + SEMANTIC_CLASS_FULL_NAME + " ").append(clazzOfModel.getPrefix()).append("_").append(clazzOfModel.getUpperClassName()).append("=" + SEMANTIC_PLATFORM_FULL_NAME + GET_SEMANTIC_CLASS).append(clazzOfModel.getURI()).append("\");" + ENTER);
+                    String propName = clazzOfModel.getPrefix()+"_"+clazzOfModel.getUpperClassName();
+                    String initialVal = SEMANTIC_PLATFORM_FULL_NAME + GET_SEMANTIC_CLASS + clazzOfModel.getURI() + "\")";
+                    javaClassContent.append("    public static final " + SEMANTIC_CLASS_FULL_NAME + " ").append(propName).append(" = ").append(initialVal).append(";" + ENTER);
                     staticClasses.add(clazzOfModel);
                 }
             }
         }
 
         if (!staticClasses.contains(tpc)) {
+            String clsJavaDoc = null;
             if(tpc.getComment(null) != null) {
-                javaClassContent.append("   /**"+ ENTER);
-                javaClassContent.append("   * ").append(tpc.getComment(null)).append(ENTER);
-                javaClassContent.append("   */"+ ENTER);
+                clsJavaDoc = buildJavaDocBlock(1, tpc.getComment(null));
+                if (null != clsJavaDoc) {
+                    javaClassContent.append(clsJavaDoc);
+                }
             }
-            javaClassContent.append("    public static final " + SEMANTIC_CLASS_FULL_NAME + " ").append(tpc.getPrefix()).append("_").append(tpc.getUpperClassName()).append("=" + SEMANTIC_PLATFORM_FULL_NAME + GET_SEMANTIC_CLASS).append(tpc.getURI()).append("\");" + ENTER);
+            String propName = tpc.getPrefix()+ "_" + tpc.getUpperClassName();
+            String initialVal = SEMANTIC_PLATFORM_FULL_NAME + GET_SEMANTIC_CLASS + tpc.getURI() + "\")";
+            javaClassContent.append("    public static final " + SEMANTIC_CLASS_FULL_NAME + " ").append(propName).append(" = ").append(initialVal).append(";" + ENTER);
             staticClasses.add(tpc);
         }
 
-        javaClassContent.append("   /**"+ ENTER);
-        javaClassContent.append("   * The semantic class that represents the currentObject"+ ENTER);
-        javaClassContent.append("   */"+ ENTER);
-
-        javaClassContent.append("    public static final " + SEMANTIC_CLASS_FULL_NAME + " sclass=" + SEMANTIC_PLATFORM_FULL_NAME + GET_SEMANTIC_CLASS).append(tpc.getURI()).append("\");" + ENTER);
+        javaClassContent.append(buildJavaDocBlock(1, "The semantic class that represents the currentObject"));
+        String propName = "sclass";
+        String initialVal = SEMANTIC_PLATFORM_FULL_NAME + GET_SEMANTIC_CLASS + tpc.getURI() + "\")";
+        javaClassContent.append("    public static final " + SEMANTIC_CLASS_FULL_NAME + " " + propName + " = " + initialVal).append(";" + ENTER);
 
         javaClassContent.append(ENTER);
         javaClassContent.append("    public static class " + GLOBAL_CLASS_NAME + ENTER);
@@ -769,26 +804,18 @@ public class CodeGenerator {
 
         String fullpathClass = tpc.getCanonicalName();
 
-        javaClassContent.append("       /**"+ ENTER);
-        javaClassContent.append("       * Returns a list of ").append(tpc.getUpperClassName()).append(" for a model"+ ENTER);
-        javaClassContent.append("       * @param model Model to find"+ ENTER);
-        javaClassContent.append("       * @return Iterator of ").append(fullpathClass).append(ENTER);
-        javaClassContent.append("       */"+ ENTER);
-
-        javaClassContent.append(ENTER);
+        javaClassContent.append(buildJavaDocBlock(2, "Returns a list of "+tpc.getUpperClassName()+" for a model",
+                "@param model Model to find",
+                "@return Iterator of "+fullpathClass));
         javaClassContent.append("        public static " + UTIL_ITERATOR_FULL_NAME + "<").append(fullpathClass).append("> list").append(tpc.getNameInPlural()).append("("+SEMANTIC_MODEL_FULL_NAME+" model)" + ENTER);
         javaClassContent.append("        {" + ENTER);
         javaClassContent.append("            "+UTIL_ITERATOR_FULL_NAME+" it=model.getSemanticObject().getModel().listInstancesOfClass(sclass);" + ENTER);
         javaClassContent.append("            return new " + GENERIC_ITERATOR_FULL_NAME + "<").append(fullpathClass).append(">(it, true);" + ENTER);
         javaClassContent.append("        }" + ENTER);
 
-        javaClassContent.append("       /**"+ ENTER);
-        javaClassContent.append("       * Returns a list of ").append(fullpathClass).append(" for all models"+ ENTER);
-        javaClassContent.append("       * @return Iterator of ").append(fullpathClass).append(ENTER);
-        javaClassContent.append("       */"+ ENTER);
+        javaClassContent.append(buildJavaDocBlock(2, "Returns a list of "+fullpathClass+" for all models",
+                "@return Iterator of "+fullpathClass));
 
-
-        javaClassContent.append(ENTER);
         javaClassContent.append("        public static " + UTIL_ITERATOR_FULL_NAME + "<").append(fullpathClass).append("> list").append(tpc.getNameInPlural()).append("()" + ENTER);
         javaClassContent.append("        {" + ENTER);
         javaClassContent.append("            "+UTIL_ITERATOR_FULL_NAME+" it=sclass.listInstances();" + ENTER);
@@ -796,7 +823,9 @@ public class CodeGenerator {
         javaClassContent.append("        }" + ENTER);
 
         if (tpc.isAutogenId()) {
-            javaClassContent.append(ENTER);
+            javaClassContent.append(buildJavaDocBlock(2, "Creates a "+fullpathClass+" in the given model",
+                    "@param model Model for the new "+fullpathClass,
+                    "@return A "+fullpathClass));
             javaClassContent.append("        public static ").append(fullpathClass).append(" create").append(tpc.getUpperClassName()).append("("+SEMANTIC_MODEL_FULL_NAME+" model)" + ENTER);
             javaClassContent.append("        {" + ENTER);
             javaClassContent.append("            long id=model.getSemanticObject().getModel().getCounter(sclass);" + ENTER);
@@ -806,13 +835,9 @@ public class CodeGenerator {
         }
 
         if (tpc.isSWBModel()) {
-            javaClassContent.append("       /**"+ ENTER);
-            javaClassContent.append("       * Gets a ").append(fullpathClass).append(""+ ENTER);
-            javaClassContent.append("       * @param id Identifier for ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       * @return A ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       */");
-
-            javaClassContent.append(ENTER);
+            javaClassContent.append(buildJavaDocBlock(2, "Gets a "+fullpathClass,
+                    "@param id Identifier for "+fullpathClass,
+                    "@return A "+fullpathClass));
             javaClassContent.append("        public static ").append(fullpathClass).append(" get").append(tpc.getUpperClassName()).append("(String id)" + ENTER);
             javaClassContent.append("        {" + ENTER);
             javaClassContent.append("            "+SEMANTIC_MANANGER_FULL_NAME+" mgr="+SEMANTIC_PLATFORM_FULL_NAME+".getSemanticMgr();" + ENTER);
@@ -836,13 +861,11 @@ public class CodeGenerator {
             javaClassContent.append("        }" + ENTER);
 
 
-            javaClassContent.append("       /**"+ ENTER);
-            javaClassContent.append("       * Create a ").append(fullpathClass).append(""+ ENTER);
-            javaClassContent.append("       * @param id Identifier for ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       * @return A ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       */");
+            javaClassContent.append(buildJavaDocBlock(2, "",
+                    "Create a "+fullpathClass,
+                    "@param id Identifier for "+fullpathClass,
+                    "@return A "+fullpathClass));
 
-            javaClassContent.append(ENTER);
             javaClassContent.append("        public static ").append(fullpathClass).append(" create").append(tpc.getUpperClassName()).append("(String id, String namespace)" + ENTER);
             javaClassContent.append("        {" + ENTER);
             javaClassContent.append("            "+SEMANTIC_MANANGER_FULL_NAME+" mgr="+SEMANTIC_PLATFORM_FULL_NAME+".getSemanticMgr();" + ENTER);
@@ -851,12 +874,9 @@ public class CodeGenerator {
             javaClassContent.append("        }" + ENTER);
 
 
-            javaClassContent.append("       /**"+ ENTER);
-            javaClassContent.append("       * Remove a ").append(fullpathClass).append(""+ ENTER);
-            javaClassContent.append("       * @param id Identifier for ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       */");
+            javaClassContent.append(buildJavaDocBlock(2, "Remove a "+fullpathClass,
+                    "@param id Identifier for "+fullpathClass));
 
-            javaClassContent.append(ENTER);
             javaClassContent.append("        public static void remove").append(tpc.getUpperClassName()).append("(String id)" + ENTER);
             javaClassContent.append("        {" + ENTER);
             javaClassContent.append("            ").append(fullpathClass).append(" obj=get").append(tpc.getUpperClassName()).append("(id);" + ENTER);
@@ -866,64 +886,49 @@ public class CodeGenerator {
             javaClassContent.append("            }" + ENTER);
             javaClassContent.append("        }" + ENTER);
 
-            javaClassContent.append("       /**"+ ENTER);
-            javaClassContent.append("       * Returns true if exists a ").append(fullpathClass).append(""+ ENTER);
-            javaClassContent.append("       * @param id Identifier for ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       * @return true if the ").append(fullpathClass).append(" exists, false otherwise"+ ENTER);
-            javaClassContent.append("       */"+ ENTER);
+            javaClassContent.append(buildJavaDocBlock(2, "Returns true if exists a "+fullpathClass,
+                    "@param id Identifier for "+fullpathClass,
+                    "@return true if the "+fullpathClass+" exists, false otherwise."));
 
-            javaClassContent.append(ENTER);
             javaClassContent.append("        public static boolean has").append(tpc.getUpperClassName()).append("(String id)" + ENTER);
             javaClassContent.append("        {" + ENTER);
             javaClassContent.append("            return (get").append(tpc.getUpperClassName()).append("(id)!=null);" + ENTER);
             javaClassContent.append("        }" + ENTER);
         } else {
-            javaClassContent.append("       /**"+ ENTER);
-            javaClassContent.append("       * Gets a ").append(fullpathClass).append(""+ ENTER);
-            javaClassContent.append("       * @param id Identifier for ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       * @param model Model of the ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       * @return A ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       */");
+            javaClassContent.append(buildJavaDocBlock(2, "Gets a "+fullpathClass,
+                    "@param id Identifier for "+fullpathClass,
+                    "@param model Model of the "+fullpathClass,
+                    "@return A "+fullpathClass));
 
-            javaClassContent.append(ENTER);
             javaClassContent.append("        public static ").append(fullpathClass).append(" get").append(tpc.getUpperClassName()).append("(String id, "+SEMANTIC_MODEL_FULL_NAME+" model)" + ENTER);
             javaClassContent.append("        {" + ENTER);
             javaClassContent.append("            return (").append(fullpathClass).append(")"+"model.getSemanticObject().getModel().getGenericObject(model.getSemanticObject().getModel().getObjectUri(id,sclass),sclass);" + ENTER);
             javaClassContent.append("        }" + ENTER);
 
-            javaClassContent.append("       /**"+ ENTER);
-            javaClassContent.append("       * Create a ").append(fullpathClass).append(""+ ENTER);
-            javaClassContent.append("       * @param id Identifier for ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       * @param model Model of the ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       * @return A ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       */");
+            javaClassContent.append(buildJavaDocBlock(2, "Create a "+fullpathClass,
+                    "@param id Identifier for "+fullpathClass,
+                    "@param model Model of the "+fullpathClass,
+                    "@return A " + fullpathClass));
 
-            javaClassContent.append(ENTER);
             javaClassContent.append("        public static ").append(fullpathClass).append(" create").append(tpc.getUpperClassName()).append("(String id, "+SEMANTIC_MODEL_FULL_NAME+" model)" + ENTER);
             javaClassContent.append("        {" + ENTER);
             javaClassContent.append("            return (").append(fullpathClass).append(")"+"model.getSemanticObject().getModel().createGenericObject(model.getSemanticObject().getModel().getObjectUri(id,sclass),sclass);" + ENTER);
             javaClassContent.append("        }" + ENTER);
 
-            javaClassContent.append("       /**"+ ENTER);
-            javaClassContent.append("       * Remove a ").append(fullpathClass).append(""+ ENTER);
-            javaClassContent.append("       * @param id Identifier for ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       * @param model Model of the ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       */");
+            javaClassContent.append(buildJavaDocBlock(2, "Remove a "+fullpathClass,
+                    "@param id Identifier for "+fullpathClass,
+                    "@param model Model of the "+fullpathClass));
 
-            javaClassContent.append(ENTER);
             javaClassContent.append("        public static void remove").append(tpc.getUpperClassName()).append("(String id, "+SEMANTIC_MODEL_FULL_NAME+" model)" + ENTER);
             javaClassContent.append("        {" + ENTER);
             javaClassContent.append("            "+"model.getSemanticObject().getModel().removeSemanticObject(model.getSemanticObject().getModel().getObjectUri(id,sclass));" + ENTER);
             javaClassContent.append("        }" + ENTER);
 
-            javaClassContent.append("       /**"+ ENTER);
-            javaClassContent.append("       * Returns true if exists a ").append(fullpathClass).append(""+ ENTER);
-            javaClassContent.append("       * @param id Identifier for ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       * @param model Model of the ").append(fullpathClass).append(ENTER);
-            javaClassContent.append("       * @return true if the ").append(fullpathClass).append(" exists, false otherwise"+ ENTER);
-            javaClassContent.append("       */"+ ENTER);
+            javaClassContent.append(buildJavaDocBlock(2, "Returns true if exists a "+fullpathClass,
+                    "@param id Identifier for "+fullpathClass,
+                    "@param model Model of the "+fullpathClass,
+                    "@return true if the "+fullpathClass+" exists, false otherwise."));
 
-            javaClassContent.append(ENTER);
             javaClassContent.append("        public static boolean has").append(tpc.getUpperClassName()).append("(String id, "+SEMANTIC_MODEL_FULL_NAME+" model)" + ENTER);
             javaClassContent.append("        {" + ENTER);
             javaClassContent.append("            return (get").append(tpc.getUpperClassName()).append("(id, model)!=null);" + ENTER);
@@ -941,29 +946,21 @@ public class CodeGenerator {
                         nameList = nameList.substring(3);
                     }
 
-                    javaClassContent.append("       /**"+ ENTER);
-                    javaClassContent.append("       * Gets all ").append(fullpathClass).append(" with a determined ").append(SWBUtils.TEXT.toUpperCase(nameList)).append(""+ ENTER);
-                    javaClassContent.append("       * @param value ").append(SWBUtils.TEXT.toUpperCase(nameList)).append(" of the type ").append(tpcToReturn.getCanonicalName()).append(""+ ENTER);
-                    javaClassContent.append("       * @param model Model of the ").append(fullpathClass).append(""+ ENTER);
-                    javaClassContent.append("       * @return Iterator with all the ").append(fullpathClass).append(""+ ENTER);
-                    javaClassContent.append("       */"+ ENTER);
+                    javaClassContent.append(buildJavaDocBlock(2, "Gets all "+fullpathClass+" with a determined "+SWBUtils.TEXT.toUpperCase(nameList),
+                            "@param value "+SWBUtils.TEXT.toUpperCase(nameList)+ " of the type " + tpcToReturn.getCanonicalName(),
+                            "@param model Model of the "+fullpathClass,
+                            "@return Iterator with all the "+fullpathClass));
 
-                    javaClassContent.append(ENTER);
                     javaClassContent.append("        public static " + UTIL_ITERATOR_FULL_NAME + "<").append(tpc.getCanonicalName()).append("> list").append(tpc.getUpperClassName()).append("By").append(SWBUtils.TEXT.toUpperCase(nameList)).append("(").append(tpcToReturn.getCanonicalName()).append(" " + "value" + ","+SEMANTIC_MODEL_FULL_NAME+" model)" + ENTER);
                     javaClassContent.append("        {" + ENTER);
                     javaClassContent.append("            " + GENERIC_ITERATOR_FULL_NAME + "<").append(tpc.getCanonicalName()).append("> it=new " + GENERIC_ITERATOR_FULL_NAME + "(model.getSemanticObject().getModel().listSubjectsByClass(").append(tpp.getPrefix()).append("_").append(tpp.getName()).append(", " + "value" + ".getSemanticObject(),sclass));" + ENTER);
                     javaClassContent.append("            return it;" + ENTER);
                     javaClassContent.append("        }" + ENTER);
 
+                    javaClassContent.append(buildJavaDocBlock(2, "Gets all "+fullpathClass+" with a determined "+SWBUtils.TEXT.toUpperCase(nameList),
+                            "@param value "+SWBUtils.TEXT.toUpperCase(nameList)+ " of the type " + tpcToReturn.getCanonicalName(),
+                            "@return Iterator with all the "+fullpathClass));
 
-                    javaClassContent.append("       /**"+ ENTER);
-                    javaClassContent.append("       * Gets all ").append(fullpathClass).append(" with a determined ").append(SWBUtils.TEXT.toUpperCase(nameList)).append(""+ ENTER);
-                    javaClassContent.append("       * @param value ").append(SWBUtils.TEXT.toUpperCase(nameList)).append(" of the type ").append(tpcToReturn.getCanonicalName()).append(""+ ENTER);
-                    javaClassContent.append("       * @return Iterator with all the ").append(fullpathClass).append(""+ ENTER);
-                    javaClassContent.append("       */"+ ENTER);
-
-
-                    javaClassContent.append(ENTER);
                     javaClassContent.append("        public static " + UTIL_ITERATOR_FULL_NAME + "<").append(tpc.getCanonicalName()).append("> list").append(tpc.getUpperClassName()).append("By").append(SWBUtils.TEXT.toUpperCase(nameList)).append("(").append(tpcToReturn.getCanonicalName()).append(" " + "value" + ")" + ENTER);
                     javaClassContent.append("        {" + ENTER);
                     javaClassContent.append("            " + GENERIC_ITERATOR_FULL_NAME + "<").append(tpc.getCanonicalName()).append("> it=new " + GENERIC_ITERATOR_FULL_NAME + "(" + "value" + ".getSemanticObject().getModel().listSubjectsByClass(").append(tpp.getPrefix()).append("_").append(tpp.getName()).append("," + "value" + ".getSemanticObject(),sclass));" + ENTER);
@@ -991,16 +988,14 @@ public class CodeGenerator {
 
         javaClassContent.append(ENTER);
         if(usesufix) {
-            javaClassContent.append("   /**"+ ENTER);
-            javaClassContent.append("   * Constructs a ").append(tpc.getUpperClassName()).append("Base with a SemanticObject"+ ENTER);
-            javaClassContent.append("   * @param base The SemanticObject with the properties for the ").append(tpc.getUpperClassName()).append(""+ ENTER);
-            javaClassContent.append("   */"+ ENTER);
+            javaClassContent.append(buildJavaDocBlock(1, "Constructor.",
+                    "Creates a "+tpc.getUpperClassName()+"Base with a SemanticObject",
+                    "@param base The SemanticObject with the properties for the "+tpc.getUpperClassName()));
             javaClassContent.append(PUBLIC).append(tpc.getUpperClassName()).append("Base("+SEMANTIC_OBJECT_FULL_NAME+" base)" + ENTER);
         } else {
-            javaClassContent.append("   /**"+ ENTER);
-            javaClassContent.append("   * Constructs a ").append(tpc.getUpperClassName()).append(" with a SemanticObject"+ ENTER);
-            javaClassContent.append("   * @param base The SemanticObject with the properties for the ").append(tpc.getUpperClassName()).append(""+ ENTER);
-            javaClassContent.append("   */"+ ENTER);
+            javaClassContent.append(buildJavaDocBlock(1, "Constructor.",
+                    "Creates a "+tpc.getUpperClassName()+" with a SemanticObject",
+                    "@param base The SemanticObject with the properties for the "+tpc.getUpperClassName()));
             javaClassContent.append(PUBLIC).append(tpc.getUpperClassName()).append("("+SEMANTIC_OBJECT_FULL_NAME+" base)" + ENTER);
         }
 
@@ -1041,7 +1036,7 @@ public class CodeGenerator {
      * @throws CodeGeneratorException the code generator exception
      */
     private void createClassBase(SemanticClass tpc, File pDirectory) throws CodeGeneratorException {
-        String code=createClassBase(tpc,true);
+        String code = createClassBase(tpc,true);
         File dir = createPackage(tpc.getCodePackage(), pDirectory);
         dir = new File(dir.getPath() + File.separatorChar + "base");
 
@@ -1090,9 +1085,7 @@ public class CodeGenerator {
 
             javaClassContent.append(ENTER);
             if(tpc.getComment(null)!=null) {
-                javaClassContent.append("   /**"+ ENTER);
-                javaClassContent.append("   * ").append(tpc.getComment(null)).append(" "+ ENTER);
-                javaClassContent.append("   */"+ ENTER);
+                javaClassContent.append(buildJavaDocBlock(1, tpc.getComment(null)));
             }
             javaClassContent.append("public class ").append(tpc.getUpperClassName()).append(" extends ").append(tpc.getCodePackage()).append(".base.").append(tpc.getUpperClassName()).append("Base " + ENTER);
             javaClassContent.append("{" + ENTER);
@@ -1122,9 +1115,7 @@ public class CodeGenerator {
         }
 
         if(tpc.getComment(null) != null) {
-            javaClassContent.append("   /**"+ ENTER);
-            javaClassContent.append("   * ").append(tpc.getComment(null)).append(" "+ ENTER);
-            javaClassContent.append("   */"+ ENTER);
+            javaClassContent.append(buildJavaDocBlock(1, tpc.getComment(null)));
         }
 
         javaClassContent.append("public interface ").append(tpc.getUpperClassName()).append(" extends ").append(tpc.getCodePackage()).append(".base.").append(tpc.getUpperClassName()).append("Base" + ENTER);
@@ -1158,9 +1149,7 @@ public class CodeGenerator {
 
         HashSet<SemanticClass> interfaces = getInterfaces(tpc);
         if(tpc.getComment(null) != null) {
-            javaClassContent.append("   /**"+ ENTER);
-            javaClassContent.append("   * ").append(tpc.getComment(null)).append(" "+ ENTER);
-            javaClassContent.append("   */"+ ENTER);
+            javaClassContent.append(buildJavaDocBlock(1, tpc.getComment(null)));
         }
 
         if (interfaces.isEmpty()) {
@@ -1197,9 +1186,7 @@ public class CodeGenerator {
                     String name = range.getPrefix() + "_" + range.getUpperClassName();
                     if (!rangeNames.contains(name)) {
                         if(range.getComment(null) != null) {
-                            javaClassContent.append("   /**"+ ENTER);
-                            javaClassContent.append("   * ").append(range.getComment(null)).append(" "+ ENTER);
-                            javaClassContent.append("   */"+ ENTER);
+                            javaClassContent.append(buildJavaDocBlock(1, range.getComment(null)));
                         }
                         javaClassContent.append("    public static final " + SEMANTIC_CLASS_FULL_NAME + " ").append(name).append("=" + SEMANTIC_PLATFORM_FULL_NAME + GET_SEMANTIC_CLASS).append(range.getURI()).append("\");" + ENTER);
                         rangeNames.add(name);
@@ -1212,9 +1199,7 @@ public class CodeGenerator {
                 String name = tpp.getPrefix() + "_" + tpp.getName();
                 if (!rangeNames.contains(name)) {
                     if(tpp.getComment(null)!=null) {
-                        javaClassContent.append("   /**"+ ENTER);
-                        javaClassContent.append("   * ").append(tpp.getComment(null)).append(" "+ ENTER);
-                        javaClassContent.append("   */"+ ENTER);
+                        javaClassContent.append(buildJavaDocBlock(1, tpp.getComment(null)));
                     }
                     javaClassContent.append("    public static final " + SEMANTIC_PROPERTY_FULL_NAME + " ").append(name).append("=" + SEMANTIC_PLATFORM_FULL_NAME + ".getSemanticMgr().getVocabulary().getSemanticProperty(\"").append(tpp.getURI()).append("\");" + ENTER);
                     rangeNames.add(name);
@@ -1225,9 +1210,7 @@ public class CodeGenerator {
         String name = tpc.getPrefix() + "_" + tpc.getUpperClassName();
         if (!rangeNames.contains(name)) {
             if(tpc.getComment(null) != null) {
-                javaClassContent.append("   /**"+ ENTER);
-                javaClassContent.append("   * ").append(tpc.getComment(null)).append(" "+ ENTER);
-                javaClassContent.append("   */"+ ENTER);
+                javaClassContent.append(buildJavaDocBlock(1, tpc.getComment(null)));
             }
             javaClassContent.append("    public static final " + SEMANTIC_CLASS_FULL_NAME + " ").append(name).append("=" + SEMANTIC_PLATFORM_FULL_NAME + GET_SEMANTIC_CLASS).append(tpc.getURI()).append("\");" + ENTER);
             rangeNames.add(name);
@@ -1315,33 +1298,25 @@ public class CodeGenerator {
                         if (!tpp.hasInverse()) {
                             javaClassContent.append(ENTER);
 
-                            javaClassContent.append("   /**"+ENTER);
-                            javaClassContent.append("   * Adds the ").append(objectName).append(ENTER);
-                            javaClassContent.append("   * @param value An instance of ").append(classToReturn).append(ENTER);
-                            javaClassContent.append("   */"+ENTER);
+                            javaClassContent.append(buildJavaDocBlock(1, "Adds the "+objectName,
+                                    "@param value An instance of "+classToReturn));
 
                             javaClassContent.append("    public void add").append(objectName).append("(").append(classToReturn).append(" " + "value" + ");" + ENTER);
                             javaClassContent.append(ENTER);
 
-                            javaClassContent.append("   /**"+ENTER);
-                            javaClassContent.append("   * Remove all the values for the property ").append(objectName).append(ENTER);
-                            javaClassContent.append("   */"+ENTER);
+                            javaClassContent.append(buildJavaDocBlock(1, "Remove all the values for the property "+objectName));
 
                             javaClassContent.append("    public void removeAll").append(objectName).append("();" + ENTER);
                             javaClassContent.append(ENTER);
 
-                            javaClassContent.append("   /**"+ENTER);
-                            javaClassContent.append("   * Remove a value from the property ").append(objectName).append(ENTER);
-                            javaClassContent.append("   * @param value An instance of ").append(classToReturn).append(ENTER);
-                            javaClassContent.append("   */"+ENTER);
+                            javaClassContent.append(buildJavaDocBlock(1, "Remove a value from the property "+objectName,
+                                    "@param value An instance of "+classToReturn));
 
                             javaClassContent.append("    public void remove").append(objectName).append("(").append(classToReturn).append(" " + "value" + ");" + ENTER);
                             javaClassContent.append(ENTER);
 
-                            javaClassContent.append("/**"+ENTER);
-                            javaClassContent.append("* Gets the ").append(objectName).append(ENTER);
-                            javaClassContent.append("* @return a instance of ").append(classToReturn).append(ENTER);
-                            javaClassContent.append("*/"+ENTER);
+                            javaClassContent.append(buildJavaDocBlock(1, "Gets the "+objectName,
+                                    "@return An instance of "+classToReturn));
 
                             javaClassContent.append(PUBLIC).append(classToReturn).append(" get").append(objectName).append("();" + ENTER);
                         }
@@ -1349,17 +1324,13 @@ public class CodeGenerator {
                         javaClassContent.append(ENTER);
                         String parameterName = "value";
 
-                        javaClassContent.append("   /**"+ENTER);
-                        javaClassContent.append("   * Sets a value from the property ").append(objectName).append(ENTER);
-                        javaClassContent.append("   * @param value An instance of ").append(classToReturn).append(ENTER);
-                        javaClassContent.append("   */"+ENTER);
+                        javaClassContent.append(buildJavaDocBlock(1, "Sets a value from the property "+objectName,
+                                "@param value An instance of "+classToReturn));
 
                         javaClassContent.append("    public void set").append(objectName).append("(").append(classToReturn).append(" ").append(parameterName).append(");" + ENTER);
                         javaClassContent.append(ENTER);
 
-                        javaClassContent.append("   /**"+ENTER);
-                        javaClassContent.append("   * Remove the value from the property ").append(objectName).append(ENTER);
-                        javaClassContent.append("   */"+ENTER);
+                        javaClassContent.append(buildJavaDocBlock(1, "Remove the value from the property "+objectName));
 
                         javaClassContent.append("    public void remove").append(objectName).append("();" + ENTER);
                         javaClassContent.append(ENTER);
@@ -1405,14 +1376,14 @@ public class CodeGenerator {
                             propertyName = "_" + propertyName;
                         }
                         javaClassContent.append(ENTER);
-                        if (type.equals("java.io.InputStream")) {
+                        if (TYPE_JAVAINPUTSTREAM.equals(type)) {
                             javaClassContent.append(PUBLIC).append(type).append(" ").append(prefix).append(methodName).append("() throws Exception;" + ENTER);
                         } else {
                             javaClassContent.append(PUBLIC).append(type).append(" ").append(prefix).append(methodName).append("();" + ENTER);
                         }
 
                         javaClassContent.append(ENTER);
-                        if (type.equals("java.io.InputStream")) {
+                        if (TYPE_JAVAINPUTSTREAM.equals(type)) {
                             javaClassContent.append(PUBLIC + "void set").append(methodName).append("(").append(type).append(" " + "value" + ",String name) throws Exception;" + ENTER);
                         } else {
                             javaClassContent.append(PUBLIC + "void set").append(methodName).append("(").append(type).append(" " + "value" + ");" + ENTER);
@@ -1421,7 +1392,7 @@ public class CodeGenerator {
                         if (tpp.isLocaleable()) {
                             javaClassContent.append(ENTER);
                             javaClassContent.append(PUBLIC).append(type).append(" ").append(prefix).append(methodName).append("(String lang);" + ENTER);
-                            if (type.equals("String")) {
+                            if (TYPE_STRING.equals(type)) {
                                 javaClassContent.append(ENTER);
                                 javaClassContent.append(PUBLIC).append(type).append(" ").append(prefix).append("Display").append(methodName).append("(String lang);" + ENTER);
                             }
@@ -1447,10 +1418,8 @@ public class CodeGenerator {
         while (tpcit.hasNext()) {
             SemanticClass tpc = tpcit.next();
             javaClassContent.append(ENTER);
-            javaClassContent.append("   /**"+ ENTER);
-            javaClassContent.append("   * Gets the ").append(tpc.getUpperClassName()).append(ENTER);
-            javaClassContent.append("   * @return a instance of ").append(tpc.getCanonicalName()).append(ENTER);
-            javaClassContent.append("   */"+ ENTER);
+            javaClassContent.append(buildJavaDocBlock(1, "Gets the "+tpc.getUpperClassName(),
+                    "@return a instance of "+tpc.getCanonicalName()));
             javaClassContent.append("    public ").append(tpc.getCanonicalName()).append(" get").append(tpc.getUpperClassName()).append("()" + ENTER);
             javaClassContent.append("    {" + ENTER);
             javaClassContent.append("        return (").append(tpc.getCanonicalName()).append(")getSemanticObject().getModel().getModelObject().createGenericInstance();" + ENTER);
@@ -1623,13 +1592,11 @@ public class CodeGenerator {
                 propertyName = "_" + propertyName;
             }
             javaClassContent.append(ENTER);
-            if (type.equals("java.io.InputStream")) {
+            if (TYPE_JAVAINPUTSTREAM.equals(type)) {
                 javaClassContent.append(PUBLIC).append(type).append(" ").append(prefix).append(methodName).append("() throws Exception" + ENTER);
             } else {
-                javaClassContent.append("/**"+ ENTER);
-                javaClassContent.append("* Gets the ").append(methodName).append(" property"+ ENTER);
-                javaClassContent.append("* @return ").append(type).append(" with the ").append(methodName).append(""+ ENTER);
-                javaClassContent.append("*/"+ ENTER);
+                javaClassContent.append(buildJavaDocBlock(1, "Gets the "+methodName+ " property",
+                        "@return "+type+" with the "+methodName));
 
                 javaClassContent.append(PUBLIC).append(type).append(" ").append(prefix).append(methodName).append("()" + ENTER);
             }
@@ -1643,25 +1610,23 @@ public class CodeGenerator {
             javaClassContent.append(CLOSE_BLOCK + ENTER);
 
             javaClassContent.append(ENTER);
-            if (type.equals("java.io.InputStream")) {
+            if (TYPE_JAVAINPUTSTREAM.equals(type)) {
                 javaClassContent.append(PUBLIC + "void set").append(methodName).append("(").append(type).append(" " + "value" + ",String name) throws Exception" + ENTER);
             } else {
-                javaClassContent.append("/**"+ ENTER);
-                javaClassContent.append("* Sets the ").append(methodName).append(" property"+ ENTER);
-                javaClassContent.append("* @param value long with the ").append(methodName).append(ENTER);
-                javaClassContent.append("*/"+ ENTER);
+                javaClassContent.append(buildJavaDocBlock(1, "Sets the "+methodName+ " property",
+                        "@param value "+type+" with the "+methodName));
                 javaClassContent.append(PUBLIC + "void set").append(methodName).append("(").append(type).append(" " + "value" + ")" + ENTER);
             }
             javaClassContent.append(OPEN_BLOCK + ENTER);
             if (tpp.isExternalInvocation()) {
                 javaClassContent.append("        //Override this method in ").append(tpc.getUpperClassName()).append(" object" + ENTER);
-                if (type.equals("java.io.InputStream")) {
+                if (TYPE_JAVAINPUTSTREAM.equals(type)) {
                     javaClassContent.append("        throw new org.semanticwb.SWBMethodImplementationRequiredException();" + ENTER);
                 } else {
                     javaClassContent.append("        ").append(setMethod).append("(").append(tpp.getPrefix()).append("_").append(tpp.getName()).append(", " + "value" + ",false);" + ENTER);
                 }
             } else {
-                if (type.equals("java.io.InputStream")) {
+                if (TYPE_JAVAINPUTSTREAM.equals(type)) {
                     javaClassContent.append("        ").append(setMethod).append("(").append(tpp.getPrefix()).append("_").append(tpp.getName()).append(", " + "value" + ",name);" + ENTER);
                 } else {
                     javaClassContent.append("        ").append(setMethod).append("(").append(tpp.getPrefix()).append("_").append(tpp.getName()).append(", " + "value" + ");" + ENTER);
@@ -1682,7 +1647,7 @@ public class CodeGenerator {
                 }
                 javaClassContent.append(CLOSE_BLOCK + ENTER);
 
-                if (type.equals("String")) {
+                if (TYPE_STRING.equals(type)) {
                     javaClassContent.append(ENTER);
                     javaClassContent.append(PUBLIC).append(type).append(" ").append(prefix).append("Display").append(methodName).append("(String lang)" + ENTER);
                     javaClassContent.append(OPEN_BLOCK + ENTER);
@@ -1726,23 +1691,18 @@ public class CodeGenerator {
                 // son varios
                 objectName = objectName.substring(3);
 
-                javaClassContent.append("   /**"+ ENTER);
-                javaClassContent.append("   * Gets all the ").append(tpcToReturn.getCanonicalName()).append(""+ ENTER);
-                javaClassContent.append("   * @return A GenericIterator with all the ").append(tpcToReturn.getCanonicalName()).append(""+ ENTER);
-                javaClassContent.append("   */"+ ENTER);
+                javaClassContent.append(buildJavaDocBlock(1, "Gets all the "+tpcToReturn.getCanonicalName(),
+                        "@return A GenericIterator with all the "+tpcToReturn.getCanonicalName()));
 
-                javaClassContent.append(ENTER);
                 javaClassContent.append("    public " + GENERIC_ITERATOR_FULL_NAME + "<").append(tpcToReturn.getCanonicalName()).append("> list").append(SWBUtils.TEXT.getPlural(objectName)).append("()" + ENTER);
                 javaClassContent.append(OPEN_BLOCK + ENTER);
                 javaClassContent.append("        return new " + GENERIC_ITERATOR_FULL_NAME + "<").append(tpcToReturn.getCanonicalName()).append(">(getSemanticObject().listObjectProperties(").append(tpp.getPrefix()).append("_").append(tpp.getName()).append("));" + ENTER);
                 javaClassContent.append(CLOSE_BLOCK + ENTER);
                 javaClassContent.append(ENTER);
 
-                javaClassContent.append("   /**"+ ENTER);
-                javaClassContent.append("   * Gets true if has a ").append(objectName).append(""+ ENTER);
-                javaClassContent.append("   * @param value ").append(tpcToReturn.getCanonicalName()).append(" to verify"+ ENTER);
-                javaClassContent.append("   * @return true if the ").append(tpcToReturn.getCanonicalName()).append(" exists, false otherwise"+ ENTER);
-                javaClassContent.append("   */"+ ENTER);
+                javaClassContent.append(buildJavaDocBlock(1, "Gets true if has a "+objectName,
+                        "@param value "+tpcToReturn.getCanonicalName()+" to verify",
+                        "@return true if the "+tpcToReturn.getCanonicalName()+" exists, false otherwise."));
 
                 javaClassContent.append("    public boolean has").append(objectName).append("(").append(tpcToReturn.getCanonicalName()).append(" " + "value" + ")" + ENTER);
                 javaClassContent.append(OPEN_BLOCK + ENTER);
@@ -1756,10 +1716,8 @@ public class CodeGenerator {
                 if (tpp.isInheritProperty()) {
                     javaClassContent.append(ENTER);
 
-                    javaClassContent.append("   /**"+ ENTER);
-                    javaClassContent.append("   * Gets all the ").append(SWBUtils.TEXT.getPlural(objectName)).append(" inherits"+ ENTER);
-                    javaClassContent.append("   * @return A GenericIterator with all the ").append(tpcToReturn.getCanonicalName()).append(""+ ENTER);
-                    javaClassContent.append("   */"+ ENTER);
+                    javaClassContent.append(buildJavaDocBlock(1, "Gets all the "+SWBUtils.TEXT.getPlural(objectName)+" inherits",
+                            "@return A GenericIterator with all the "+tpcToReturn.getCanonicalName()));
 
                     javaClassContent.append("    public " + GENERIC_ITERATOR_FULL_NAME + "<").append(tpcToReturn.getCanonicalName()).append("> listInherit").append(SWBUtils.TEXT.getPlural(objectName)).append("()" + ENTER);
                     javaClassContent.append(OPEN_BLOCK + ENTER);
@@ -1768,10 +1726,8 @@ public class CodeGenerator {
                 }
 
                 if (!tpp.hasInverse()) {
-                    javaClassContent.append("   /**"+ ENTER);
-                    javaClassContent.append("   * Adds a ").append(objectName).append(""+ ENTER);
-                    javaClassContent.append("   * @param value ").append(tpcToReturn.getCanonicalName()).append(" to add"+ ENTER);
-                    javaClassContent.append("   */"+ ENTER);
+                    javaClassContent.append(buildJavaDocBlock(1, "Adds a "+objectName,
+                            "@param value "+(tpcToReturn.getCanonicalName()+" to add")));
 
                     javaClassContent.append(ENTER);
                     javaClassContent.append("    public void add").append(objectName).append("(").append(tpcToReturn.getCanonicalName()).append(" " + "value" + ")" + ENTER);
@@ -1779,12 +1735,7 @@ public class CodeGenerator {
                     javaClassContent.append("        get").append(semanticObject).append("().addObjectProperty(").append(tpp.getPrefix()).append("_").append(tpp.getName()).append(", " + "value" + ".getSemanticObject());" + ENTER);
                     javaClassContent.append(CLOSE_BLOCK + ENTER);
 
-
-                    javaClassContent.append("   /**"+ ENTER);
-                    javaClassContent.append("   * Removes all the ").append(objectName).append(""+ ENTER);
-                    javaClassContent.append("   */"+ ENTER);
-
-
+                    javaClassContent.append(buildJavaDocBlock(1, "Removes all the "+objectName));
 
                     javaClassContent.append(ENTER);
                     javaClassContent.append("    public void removeAll").append(objectName).append("()" + ENTER);
@@ -1792,10 +1743,8 @@ public class CodeGenerator {
                     javaClassContent.append("        get").append(semanticObject).append("().removeProperty(").append(tpp.getPrefix()).append("_").append(tpp.getName()).append(");" + ENTER);
                     javaClassContent.append(CLOSE_BLOCK + ENTER);
 
-                    javaClassContent.append("   /**"+ ENTER);
-                    javaClassContent.append("   * Removes a ").append(objectName).append(""+ ENTER);
-                    javaClassContent.append("   * @param value ").append(tpcToReturn.getCanonicalName()).append(" to remove"+ ENTER);
-                    javaClassContent.append("   */"+ ENTER);
+                    javaClassContent.append(buildJavaDocBlock(1, "Removes a "+objectName,
+                            "@param value "+tpcToReturn.getCanonicalName()+" to remove"));
 
                     javaClassContent.append(ENTER);
                     javaClassContent.append("    public void remove").append(objectName).append("(").append(tpcToReturn.getCanonicalName()).append(" " + "value" + ")" + ENTER);
@@ -1804,12 +1753,9 @@ public class CodeGenerator {
                     javaClassContent.append(CLOSE_BLOCK + ENTER);
                 }
             } else {
-                javaClassContent.append("   /**"+ ENTER);
-                javaClassContent.append("   * Sets the value for the property ").append(objectName).append(ENTER);
-                javaClassContent.append("   * @param value ").append(objectName).append(" to set"+ ENTER);
-                javaClassContent.append("   */"+ ENTER);
+                javaClassContent.append(buildJavaDocBlock(1, "Sets the value for the property "+objectName,
+                        "@param value "+objectName+" to set"));
 
-                javaClassContent.append(ENTER);
                 javaClassContent.append("    public void set").append(objectName).append("(").append(tpcToReturn.getCanonicalName()).append(" " + "value" + ")" + ENTER);
                 javaClassContent.append(OPEN_BLOCK + ENTER);
                 javaClassContent.append("        if(value!=null)" + ENTER);
@@ -1822,10 +1768,7 @@ public class CodeGenerator {
                 javaClassContent.append(CLOSE_BLOCK + ENTER);
 
 
-                javaClassContent.append("   /**"+ ENTER);
-                javaClassContent.append("   * Remove the value for ").append(objectName).append(" property"+ ENTER);
-                javaClassContent.append("   */"+ ENTER);
-                javaClassContent.append(ENTER);
+                javaClassContent.append(buildJavaDocBlock(1, "Removes the value for the property "+objectName));
                 javaClassContent.append("    public void remove").append(objectName).append("()" + ENTER);
                 javaClassContent.append(OPEN_BLOCK + ENTER);
                 javaClassContent.append("        get").append(semanticObject).append("().removeProperty(").append(tpp.getPrefix()).append("_").append(tpp.getName()).append(");" + ENTER);
@@ -1839,10 +1782,8 @@ public class CodeGenerator {
 
             javaClassContent.append(ENTER);
 
-            javaClassContent.append("   /**"+ ENTER);
-            javaClassContent.append("   * Gets the ").append(objectName).append(""+ ENTER);
-            javaClassContent.append("   * @return a ").append(tpcToReturn.getCanonicalName()).append(""+ ENTER);
-            javaClassContent.append("   */"+ ENTER);
+            javaClassContent.append(buildJavaDocBlock(1, "Gets the "+objectName,
+                    "@return A "+tpcToReturn.getCanonicalName()));
 
             javaClassContent.append(PUBLIC).append(tpcToReturn.getCanonicalName()).append(" get").append(objectName).append("()" + ENTER);
             javaClassContent.append(OPEN_BLOCK + ENTER);
@@ -1907,11 +1848,9 @@ public class CodeGenerator {
                 javaClassContent.append(CLOSE_BLOCK + ENTER);
             }
 
+            javaClassContent.append(buildJavaDocBlock(0, "Gets the " + objectName+ " property",
+                    " @return the value for the property as "+classToReturn));
             javaClassContent.append(ENTER);
-            javaClassContent.append("/**"+ ENTER);
-            javaClassContent.append("* Gets the ").append(objectName).append(" property"+ ENTER);
-            javaClassContent.append("* @return the value for the property as ").append(classToReturn).append(""+ ENTER);
-            javaClassContent.append("*/"+ ENTER);
 
             javaClassContent.append(PUBLIC).append(classToReturn).append(" get").append(objectName).append("()" + ENTER);
             javaClassContent.append(OPEN_BLOCK + ENTER);
