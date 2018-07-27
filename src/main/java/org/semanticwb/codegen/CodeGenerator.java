@@ -1623,7 +1623,6 @@ public class CodeGenerator {
                         if (null == type) {
                             throw new IllegalArgumentException("Data type '" + tpp.getRange() + "' is no supported");
                         }
-                        System.out.println("-->Type of property "+tpp.getName()+ " of class "+tpc.getUpperClassName() +" is " + type);
 
                         String prefix = TYPE_BOOLEAN.equals(type) ? "is" : "get";
                         String label = tpp.getPropertyCodeName();
@@ -1640,7 +1639,6 @@ public class CodeGenerator {
                             javaClassContent.append(PUBLIC).append(type).append(" ").append(prefix).append(methodName)
                                     .append("() throws Exception;" + ENTER);
                         } else {
-                            System.out.println("  --> prop prefix: "+prefix);
                             javaClassContent.append(PUBLIC).append(type).append(" ").append(prefix).append(methodName)
                                     .append("();" + ENTER);
                         }
