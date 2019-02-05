@@ -26,24 +26,26 @@ import org.semanticwb.SWBUtils;
 
 /**
  * Generador de identificadores únicos.
- * 
+ *
  * @author Javier Solis Gonzalez
  * @version 1.1
  */
-public class IDGenerator
-{
-    /** The base id. */
+public class IDGenerator {
+    /**
+     * The base id.
+     */
     protected String baseID;
-    
-    /** The counter. */
+
+    /**
+     * The counter.
+     */
     protected long counter;
 
     /**
      * Constructs a new IDGeneratorImpl object, with the
      * base part of the ID string set to the time of creation.
      */
-    public IDGenerator()
-    {
+    public IDGenerator() {
         long ts = System.currentTimeMillis();
         baseID = "x" + Long.toString(ts, 30);
     }
@@ -53,60 +55,53 @@ public class IDGenerator
      * the base identifier created in the object constructor
      * followed by a dash (-) and then a simple, incrementing
      * counter value (encoded in hexadecimal).
-     * 
+     *
      * @return the iD
      */
-    public String getID()
-    {
+    public String getID() {
         return baseID + "-" + Long.toString(counter++, 16);
     }
 
     /**
      * Gets the counter.
-     * 
+     *
      * @return the counter
      */
-    public String getCounter()
-    {
+    public String getCounter() {
         return Long.toString(counter++, 16);
     }
 
     /**
      * Gets the iD.
-     * 
+     *
      * @param titulo the titulo
-     * @param mapid the mapid
+     * @param mapid  the mapid
      * @return the iD
      */
-    public String getID(String titulo, String mapid)
-    {
+    public String getID(String titulo, String mapid) {
         return getID(titulo, mapid, true);
     }
 
     /**
      * Gets the iD.
-     * 
-     * @param titulo the titulo
-     * @param mapid the mapid
+     *
+     * @param titulo   the titulo
+     * @param mapid    the mapid
      * @param contador the contador
      * @return the iD
      */
-    public String getID(String titulo, String mapid, boolean contador)
-    {
+    public String getID(String titulo, String mapid, boolean contador) {
         StringBuilder ret = new StringBuilder();
-        if(mapid!=null && mapid.length()>0) {
-        	
-        }
-        if (contador)
-        {
+
+        if (contador) {
             ret.append(getCounter());
             ret.append("_");
         }
-        ret.append(SWBUtils.TEXT.replaceSpecialCharacters(titulo.toLowerCase(),true));
-        String aux=ret.toString();
-        if (aux.length() > 50)
+        ret.append(SWBUtils.TEXT.replaceSpecialCharacters(titulo.toLowerCase(), true));
+        String aux = ret.toString();
+        if (aux.length() > 50) {
             aux = aux.substring(0, 50);
+        }
         return aux;
     }
-
 }
