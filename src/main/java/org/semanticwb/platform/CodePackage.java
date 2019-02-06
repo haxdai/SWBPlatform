@@ -56,7 +56,7 @@ public class CodePackage {
      * @return the package
      */
     public String getPackage(String prefix) {
-        String spkg = map.get(prefix); //TODO: Remove conditional because map is always empty
+        String spkg = map.get(prefix); //TODO: Remove conditional because map is always empty. Maybe it was intended to cache packages?
         if (spkg == null) {
             SemanticProperty pfx = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(SemanticVocabulary.SWB_PROP_PREFIX);
             SemanticProperty pkg = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(SemanticVocabulary.SWB_PROP_PACKAGE);
