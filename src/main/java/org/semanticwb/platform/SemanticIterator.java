@@ -32,45 +32,37 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
- * The Class SemanticIterator.
+ * Iterator implementation for {@link SemanticObject}.
  *
  * @param <T> the generic type
  * @author victor.lorenzana
  */
 public class SemanticIterator<T extends SemanticObject> implements Iterator {
+    private static Logger LOG = SWBUtils.getLogger(SemanticIterator.class);
 
     /**
-     * The log.
-     */
-    private static Logger log = SWBUtils.getLogger(SemanticIterator.class);
-
-    /**
-     * The iterator.
+     * The internal iterator.
      */
     private Iterator iterator;
-
-    /**
-     * The invert.
-     */
     private boolean invert;
 
     private SemanticModel model = null;
     private SemanticClass cls = null;
 
     /**
-     * Instantiates a new semantic iterator.
+     * Creates a new {@link SemanticIterator} using a generic {@link Iterator}.
      *
-     * @param iterator the iterator
+     * @param iterator the {@link Iterator}
      */
     public SemanticIterator(Iterator iterator) {
         this(iterator, false);
     }
 
     /**
-     * Instantiates a new semantic iterator.
+     * Creates a new {@link SemanticIterator} using a generic {@link Iterator}.
      *
-     * @param iterator the iterator
-     * @param invert   the invert
+     * @param iterator the {@link Iterator}
+     * @param invert   whether to check inverse properties on Resources.
      */
     public SemanticIterator(Iterator iterator, boolean invert) {
         this.iterator = iterator;
@@ -80,16 +72,32 @@ public class SemanticIterator<T extends SemanticObject> implements Iterator {
         this.invert = invert;
     }
 
+    /**
+     * Creates a new {@link SemanticIterator} using a generic {@link Iterator}.
+     *
+     * @param iterator the {@link Iterator}
+     * @param invert   whether to check inverse properties on Resources.
+     * @param model    the objects model
+     * @param model    the objects class
+     */
     public SemanticIterator(Iterator iterator, boolean invert, SemanticModel model, SemanticClass cls) {
+        //TODO: Check why model and cls are needed. They are not used anywhere in code
         this(iterator, invert);
         this.model = model;
         this.cls = cls;
     }
 
+    @Override
     public void remove() {
         iterator.remove();
     }
 
+    /**
+     * Returns {@code true} if the iteration has more elements.
+     *
+     * @return true if the iteration has more elements.
+     * @see Iterator#hasNext()
+     */
     public boolean hasNext() {
         boolean ret = iterator.hasNext();
         if (!ret && iterator instanceof ClosableIterator) {
@@ -98,6 +106,11 @@ public class SemanticIterator<T extends SemanticObject> implements Iterator {
         return ret;
     }
 
+    /**
+     * Returns the next element in the iteration.
+     *
+     * @return next element in the iteration.
+     */
     public T next() {
         Object obj = iterator.next();
 
@@ -106,7 +119,7 @@ public class SemanticIterator<T extends SemanticObject> implements Iterator {
                 if (invert) {
                     T aux = (T) SemanticObject.createSemanticObject(((Statement) obj).getSubject());
                     if (aux == null) {
-                        log.warn("Remove bad statement from cache:" + obj);
+                        LOG.warn("Remove bad statement from cache: " + obj);
                         if (((Statement) obj).getObject().isResource()) {
                             SemanticObject o = SemanticObject
                                     .getSemanticObjectFromCache(((Statement) obj).getResource().getURI());
@@ -120,7 +133,7 @@ public class SemanticIterator<T extends SemanticObject> implements Iterator {
                 } else {
                     T aux = (T) SemanticObject.createSemanticObject(((Statement) obj).getResource());
                     if (aux == null) {
-                        log.warn("Remove bad statement from cache:" + obj);
+                        LOG.warn("Remove bad statement from cache:" + obj);
                         SemanticObject o = SemanticObject
                                 .getSemanticObjectFromCache(((Statement) obj).getSubject().getURI());
 
@@ -131,14 +144,15 @@ public class SemanticIterator<T extends SemanticObject> implements Iterator {
                     return aux;
                 }
             } catch (SWBRuntimeException re) {
-                log.error(re);
+                LOG.error(re);
+                //TODO: Check convenience to use a ResourceNotFoundException instead of comparing exception message
                 if (re.getMessage().startsWith("Resource not Found")) {
-                    log.warn("Removing bad link:" + ((Statement) obj).getResource());
+                    LOG.warn("Removing bad link:" + ((Statement) obj).getResource());
                     ((Statement) obj).remove();
                 }
                 return null;
             } catch (Exception ie) {
-                log.error(ie);
+                LOG.error(ie);
                 return null;
             }
         } else if (obj instanceof Resource) {
