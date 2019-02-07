@@ -22,315 +22,273 @@
  */
 package org.semanticwb.platform;
 
-import com.hp.hpl.jena.ontology.OntClass;
 import com.hp.hpl.jena.ontology.OntModel;
-import com.hp.hpl.jena.ontology.OntResource;
+import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.StmtIterator;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map.Entry;
 import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.SWBUtils;
 import org.semanticwb.model.GenericObject;
 
-// TODO: Auto-generated Javadoc
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map.Entry;
+
 /**
- * The Class SemanticOntology.
- * 
+ * High level wrapper class for an Ontology Model.
+ *
  * @author Jei
  */
-public class SemanticOntology
-{
-    
-    /** The log. */
-    private static Logger log=SWBUtils.getLogger(SemanticOntology.class);
-
-
-    /** The m_ontology. */
-    private OntModel m_ontology;
-    
-    /** The m_name. */
-    private String m_name;
-    
-    /** The sub models. */
-    private ArrayList<SemanticModel> subModels=new ArrayList();
-    
-    private HashMap<String, SemanticModel> ontologys = new HashMap();
+public class SemanticOntology {
 
     /**
-     * Instantiates a new semantic ontology.
-     * 
-     * @param name the name
-     * @param ontology the ontology
+     * The LOG.
      */
-    public SemanticOntology(String name, OntModel ontology)
-    {
-        this.m_ontology=ontology;
-        this.m_name=name;
+    private static final Logger LOG = SWBUtils.getLogger(SemanticOntology.class);
+
+    /**
+     * The ontology model.
+     */
+    private OntModel ontology;
+
+    /**
+     * The ontology name.
+     */
+    private String name;
+
+    /**
+     * The ontology sub models.
+     */
+    private ArrayList<SemanticModel> subModels = new ArrayList<>();
+
+    private HashMap<String, SemanticModel> ontologies = new HashMap<>();
+
+    /**
+     * Constructor. Creates a new instance of a {@link SemanticOntology}.
+     *
+     * @param name      ontology name
+     * @param ontology the ontology model
+     */
+    public SemanticOntology(String name, OntModel ontology) {
+        this.ontology = ontology;
+        this.name = name;
         init();
-    }    
-    
-    /**
-     * Inits the.
-     */
-    private void init()
-    {
-        
     }
 
     /**
-     * Gets the name.
-     * 
-     * @return the name
+     * Inits the {@link SemanticOntology}.
+     */
+    private void init() {
+
+    }
+
+    /**
+     * Gets the ontology name.
+     *
+     * @return the ontology name
      */
     public String getName() {
-        return m_name;
+        return name;
     }
-    
+
     /**
-     * Gets the rDF ont model.
-     * 
-     * @return the rDF ont model
+     * Gets the ontology {@link OntModel}.
+     *
+     * @return the {@link OntModel}
      */
-    public OntModel getRDFOntModel()
-    {
-        return m_ontology;
+    public OntModel getRDFOntModel() {
+        return ontology;
     }
-    
+
     /**
-     * Adds the sub model.
-     * 
-     * @param model the model
-     * @param rebind the rebind
+     * Adds a {@link SemanticModel} as submodel of the SemanticOntology.
+     *
+     * @param model  the model
+     * @param rebind whether to rebind model.
      */
-    public void addSubModel(SemanticModel model, boolean rebind)
-    {
-        subModels.add(model);                
-        m_ontology.addSubModel(model.getRDFModel(),rebind);
+    public void addSubModel(SemanticModel model, boolean rebind) {
+        subModels.add(model);
+        ontology.addSubModel(model.getRDFModel(), rebind);
     }
-    
+
     /**
-     * Adds the sub model join.
-     * 
-     * @param model the model
-     * @param rebind the rebind
+     * Adds a {@link SemanticModel} with the given name as submodel of the SemanticOntology.
+     *
+     * @param owl  the model name
+     * @param model  the model
+     * @param rebind whether to rebind model
+     * @return true if model is added.
      */
-    public boolean addOWLModel(String owl, SemanticModel model, boolean rebind)
-    {
-        if(!ontologys.containsKey(owl))
-        {
-            ontologys.put(owl, model);
-            
-//            subModels.add(model);                
-//            m_ontology.addSubModel(model.getRDFModel(),rebind);
-            
-            subModels.add(model);                            
-            m_ontology.add(model.getRDFModel());
-            m_ontology.setNsPrefixes(model.getRDFModel().getNsPrefixMap());
-            if(rebind)m_ontology.rebind();
+    public boolean addOWLModel(String owl, SemanticModel model, boolean rebind) {
+        if (!ontologies.containsKey(owl)) {
+            ontologies.put(owl, model);
+
+            subModels.add(model);
+            ontology.add(model.getRDFModel());
+            ontology.setNsPrefixes(model.getRDFModel().getNsPrefixMap());
+
+            if (rebind) {
+                ontology.rebind();
+            }
             return true;
         }
         return false;
-    }    
-
-    /**
-     * Removes the sub model.
-     * 
-     * @param model the model
-     * @param rebind the rebind
-     */
-    public void removeSubModel(SemanticModel model, boolean rebind)
-    {
-        subModels.remove(model);
-        m_ontology.removeSubModel(model.getRDFModel(),rebind);
     }
 
     /**
-     * List sub models.
-     * 
-     * @return the iterator
+     * Removes <code>model</code> as submodel of SemanticOntology.
+     *
+     * @param model  the model
+     * @param rebind whether to rebind model
      */
-    public Iterator<SemanticModel> listSubModels()
-    {
+    public void removeSubModel(SemanticModel model, boolean rebind) {
+        subModels.remove(model);
+        ontology.removeSubModel(model.getRDFModel(), rebind);
+    }
+
+    /**
+     * Gets an iterator of all SemanticOntology submodels.
+     *
+     * @return the iterator of SemanticModel
+     */
+    public Iterator<SemanticModel> listSubModels() {
         return subModels.iterator();
     }
-    
+
     /**
-     * Rebind.
+     * Rebinds the SemanticOntology.
+     * @see OntModel#rebind()
      */
-    public void rebind()
-    {
-        m_ontology.rebind();
+    public void rebind() {
+        ontology.rebind();
     }
 
     //TODO: Mejorar performance
     /**
-     * Gets the resource.
-     * 
-     * @param uri the uri
+     * Gets a Resource from this SemanticOntology.
+     *
+     * @param uri the resource URI.
      * @return the resource
      */
-    public Resource getResource(String uri)
-    {
-        log.debug("getResource:"+uri);
-        //new Exception().printStackTrace();
-        if(uri==null || uri.length()==0)return null;
-        Resource ret=null;
-        Property type=SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(SemanticVocabulary.RDF_TYPE).getRDFProperty();
-        int i=uri.indexOf('#');
-        if(i==-1)i=uri.lastIndexOf('/');
-        if(i>0)
-        {
-            String base=uri.substring(0,i+1);
-            log.trace("getResource in Model(1):"+uri+" "+base);
-            SemanticModel model=SWBPlatform.getSemanticMgr().getModelByNS(base);
-            if(model!=null)
-            {
-                Resource res=model.getRDFModel().getResource(uri);
-                if(model.getRDFModel().contains(res, type))
-                {
-                    ret=res;
+    public Resource getResource(String uri) {
+        LOG.debug("getResource:" + uri);
+        if (uri == null || uri.length() == 0) {
+            return null;
+        }
+
+        Resource ret = null;
+        Property type = SWBPlatform.getSemanticMgr().getVocabulary()
+                .getSemanticProperty(SemanticVocabulary.RDF_TYPE).getRDFProperty();
+
+        int i = uri.indexOf('#');
+        if (i == -1) {
+            i = uri.lastIndexOf('/');
+        }
+
+        if (i > 0) {
+            String base = uri.substring(0, i + 1);
+            LOG.trace("getResource in Model(1):" + uri + " " + base);
+            SemanticModel model = SWBPlatform.getSemanticMgr().getModelByNS(base);
+            if (model != null) {
+                Resource res = model.getRDFModel().getResource(uri);
+                if (model.getRDFModel().contains(res, type)) {
+                    ret = res;
                 }
             }
         }
 
-        if(ret==null)
-        {
-            log.trace("getResource in Schema(2):");
-            //new Exception().printStackTrace();
-            Model model=SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel();
-            Resource res=model.getResource(uri);
-            if(model.contains(res, type))
-            {
-                ret=res;
+        if (ret == null) {
+            LOG.trace("getResource in Schema(2):");
+            Model model = SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel();
+            Resource res = model.getResource(uri);
+            if (model.contains(res, type)) {
+                ret = res;
             }
         }
 
-        if(ret==null)
-        {
-            log.trace("getResource in All Model(3):");
-            //new Exception().printStackTrace();
-            Iterator<Entry<String, SemanticModel>> it=SWBPlatform.getSemanticMgr().getModels().iterator();
-            while(it.hasNext())
-            {
-                Entry<String, SemanticModel> ent=it.next();
-                SemanticModel model=ent.getValue();
-                Resource res=model.getRDFModel().getResource(uri);
-                if(model.getRDFModel().contains(res, type))
-                {
-                    ret=res;
+        if (ret == null) {
+            LOG.trace("getResource in All Model(3):");
+            Iterator<Entry<String, SemanticModel>> it = SWBPlatform.getSemanticMgr().getModels().iterator();
+            while (it.hasNext()) {
+                Entry<String, SemanticModel> ent = it.next();
+                SemanticModel model = ent.getValue();
+                Resource res = model.getRDFModel().getResource(uri);
+                if (model.getRDFModel().contains(res, type)) {
+                    ret = res;
                 }
-                if(ret!=null)break;
+                if (ret != null) {
+                    break;
+                }
             }
         }
-        if(ret==null)
-        {
-            log.trace("getResource in Ontology(4):");
-            //new Exception().printStackTrace();
-//            Model model=SWBPlatform.getSemanticMgr().getOntology().getRDFOntModel();
-//            Resource res=model.getResource(uri);
-//            if(model.contains(res, type))
-//            {
-//                ret=res;
-//            }
+        if (ret == null) {
+            LOG.trace("getResource in Ontology(4):");
         }
-        //System.out.println("ret:"+ret);
-        //if(ret==null)log.warn("Uri not Found:"+uri,new AssertionError());
         return ret;
     }
-    
-//    public SemanticClass getSemanticObjectClass(Resource res)
-//    {
-//        Statement stm=res.getRequiredProperty(SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(SemanticVocabulary.RDF_TYPE).getRDFProperty());
-//        if(stm!=null)
-//        {
-//            return SWBPlatform.getSemanticMgr().getVocabulary().getSemanticClass(stm.getResource().getURI());
-//        }
-//        return null;
-//    }
-    
+
     /**
-     * Gets the semantic object.
+     * Gets a {@link SemanticObject} from the SemanticOntology.
      *
-     * @param uri the uri
-     * @return the semantic object
+     * @param uri the SemanticObject URI
+     * @return the SemanticObject
      */
-    public SemanticObject getSemanticObject(String uri)
-    {
-        SemanticObject ret=SemanticObject.createSemanticObject(uri);
-        return ret;        
+    public SemanticObject getSemanticObject(String uri) {
+        return SemanticObject.createSemanticObject(uri);
     }
 
-    
     /**
-     * Gets the generic object.
-     * 
-     * @param uri the uri
-     * @return the generic object
+     * Gets a {@link GenericObject} from the SemanticOntology.
+     *
+     * @param uri the GenericObject URI
+     * @return the GenericObject
      */
-    public GenericObject getGenericObject(String uri)
-    {
-        GenericObject ret=null;
-        SemanticObject sobj=getSemanticObject(uri);
-        if(sobj!=null)ret=sobj.createGenericInstance();
-        return ret;
-        //SemanticClass cls=sobj.getSemanticClass();
-        //return cls.newGenericInstance(sobj);
-    }    
-    
-    /**
-     * Gets the generic object.
-     * 
-     * @param uri the uri
-     * @param cls the cls
-     * @return the generic object
-     */
-    public GenericObject getGenericObject(String uri, SemanticClass cls)
-    {
-        GenericObject ret=null;
-        SemanticObject obj=getSemanticObject(uri);
-        if(obj!=null)ret=cls.newGenericInstance(obj);
-        return ret;
+    public GenericObject getGenericObject(String uri) {
+        SemanticObject sobj = getSemanticObject(uri);
+        if (sobj != null) {
+            return sobj.createGenericInstance();
+        }
+        return null;
     }
-    
-//    public SemanticClass createSemanticClass(String uri)
-//    {
-//        OntModel m=m_ontology;
-//        m.createStatement(m.getResource(uri), m.getProperty(SemanticVocabulary.RDF_TYPE), m.getResource(SemanticVocabulary.OWL_CLASS));
-//        OntClass ontcls=m_ontology.getOntClass(uri);
-//        return new SemanticClass(ontcls);
-//    }
 
     /**
- * List instances of class.
- * 
- * @param cls the cls
- * @return the iterator
- */
-public Iterator<SemanticObject> listInstancesOfClass(SemanticClass cls)
-    {
-        Property rdf=m_ontology.getProperty(SemanticVocabulary.RDF_TYPE);
-        StmtIterator stit=m_ontology.listStatements(null, rdf, cls.getOntClass());
+     * Gets a {@link GenericObject} of type <code>cls</code> from the SemanticOntology.
+     *
+     * @param uri the GenericObject URI
+     * @param uri the {@link SemanticClass} of the GenericObject
+     * @return the GenericObject
+     */
+    public GenericObject getGenericObject(String uri, SemanticClass cls) {
+        SemanticObject obj = getSemanticObject(uri);
+        if (obj != null) {
+            return cls.newGenericInstance(obj);
+        }
+        return null;
+    }
+
+    /**
+     * Gets an iterator of {@link SemanticObject}s that are instances of <code>cls</code> in all
+     * resources of the SemanticOntology.
+     *
+     * @param cls the {@link SemanticClass}
+     * @return the iterator of SemanticObject
+     */
+    public Iterator<SemanticObject> listInstancesOfClass(SemanticClass cls) {
+        Property rdf = ontology.getProperty(SemanticVocabulary.RDF_TYPE);
+        StmtIterator stit = ontology.listStatements(null, rdf, cls.getOntClass());
         return new SemanticIterator(stit, true);
     }
 
-
     /**
-     * Gets the semantic property.
-     * 
-     * @param uri the uri
+     * Gets the {@link SemanticProperty} with URI equals to <code>uri</code>.
+     *
+     * @param uri the {@link SemanticProperty} URI.
      * @return the semantic property
      */
-    public SemanticProperty getSemanticProperty(String uri)
-    {
+    public SemanticProperty getSemanticProperty(String uri) {
         return SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(uri);
     }
-    
-
 }
