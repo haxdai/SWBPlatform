@@ -946,6 +946,28 @@ public class SemanticMgr implements SWBInstanceObject {
         tsObservers.remove(observer);
     }
 
+    /**
+     * Converts a short SemanticObject URI (model id + object id) to a full URI (model URI + id).
+     * @param shorturi short URI
+     * @return Full URI
+     */
+    public static String shortToFullURI(String shorturi) {
+        int pos = shorturi.indexOf('#');
+        if (pos != -1) {
+            throw new IllegalArgumentException();
+        }
+        pos = shorturi.indexOf(':');
+        if (pos != -1) {
+            String idmodel = shorturi.substring(0, pos);
+            SemanticModel model = SWBPlatform.getSemanticMgr().getModel(idmodel);
+            if (model != null) {
+                return model.getNameSpace() + shorturi.substring(pos + 1);
+            }
+            throw new IllegalArgumentException("The objectModel was not found " + idmodel);
+        } else {
+            throw new IllegalArgumentException("The separator ':' was not found in shorturi " + shorturi);
+        }
+    }
 
     /**
      * Notifies a change in a model to registered observers.

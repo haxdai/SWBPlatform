@@ -33,7 +33,6 @@ import com.hp.hpl.jena.rdf.model.impl.IteratorFactory;
 import com.hp.hpl.jena.rdf.model.impl.ModelCom;
 import com.hp.hpl.jena.vocabulary.OWL;
 import com.hp.hpl.jena.vocabulary.RDF;
-import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.SWBUtils;
 import org.semanticwb.model.GenericObject;
@@ -46,7 +45,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * High level wrapper for an Ontology Model.
+ * High level wrapper for an Ontology Model that manages SemanticObjects.
  * @author Jei
  */
 public class SemanticModel {
