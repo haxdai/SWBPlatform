@@ -22,471 +22,460 @@
  */
 package org.semanticwb.platform;
 
-import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.StringTokenizer;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.SWBUtils;
 import org.semanticwb.base.SWBObserver;
 
+import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
+import java.text.SimpleDateFormat;
+import java.util.*;
+
 /**
- * Se encarga de la recepcion y envio de mensajes UDP, para la sincronizacion de servidores.
- * In charge of the reception and shipment of messages UDP, for the synchronization of servers.
+ * Class responsible for the reception and shipment of UDP messages for servers synchronization.
+ *
  * @author Javier Solis Gonzalez
  */
-public class SWBMessageCenter
-{
-    
-    /** The log. */
-    public static Logger log = SWBUtils.getLogger(SWBMessageCenter.class);
+public class SWBMessageCenter {
 
-    //private WeakHashMap observers=new WeakHashMap();
-    /** The observers. */
+    /**
+     * The LOG.
+     */
+    public static final Logger LOG = SWBUtils.getLogger(SWBMessageCenter.class);
+
+    /**
+     * The observers.
+     */
     private HashMap<String, SWBObserver> observers = new HashMap<>();
 
-    /** The sa. */
-    private boolean sa = true; //standalone
+    /**
+     * The standalone.
+     */
+    private boolean standalone = true; //standalone
 
-    /** The server. */
+    /**
+     * The server.
+     */
     private SWBMessageServer server = null;
-    
-    /** The sock. */
+
+    /**
+     * The sock.
+     */
     private DatagramSocket sock = null;
-    
-    /** The packets. */
-    private ArrayList<DatagramPacket> packets=new ArrayList<>();
 
-    /** The addr. */
-    private InetAddress addr=null;
+    /**
+     * The packets.
+     */
+    private List<DatagramPacket> packets = new ArrayList<>();
 
-    /** The messages. */
-    private LinkedList<String> messages = null;
+    /**
+     * The addr.
+     */
+    private InetAddress addr = null;
 
-    /** The df. */
-    private SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    /**
+     * The messages.
+     */
+    private LinkedList<String> messages;
 
-    /** The localaddr. */
-    private String localaddr = "127.0.0.1";
-    
-    /** The Timer Sync **/
+    /**
+     * The dateFormat.
+     */
+    private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    /**
+     * The localhost.
+     */
+    private String localhost = "127.0.0.1";
+
+    /**
+     * The Timer Sync
+     **/
     private Timer timer = new Timer("MessageSynchronizer", true);
-    
-    /** The Period **/
-    private long period = 1000 * 60 * 5;
-    
-    /** The Message **/
-    private String synchMess = null;
+
+    /**
+     * The Message
+     **/
+    private String syncMessage = null;
 
 
     /**
-     * Creates a new instance of SWBMessageCenter.
+     * Creates a new instance of {@link SWBMessageCenter}.
      */
-    public SWBMessageCenter()
-    {
-        log.event("Initializing SWBMessageCenter...");
+    public SWBMessageCenter() {
+        LOG.event("Initializing SWBMessageCenter...");
         messages = new LinkedList<>();
     }
 
     /**
-     * Destroy.
+     * Destroys {@link SWBMessageCenter} closing socket and stopping server.
      */
-    public void destroy()
-    {
-        log.event("Destroy SWBMessageCenter...");
-        if (sock != null) sock.close();
-        if (server != null) server.stop();
+    public void destroy() {
+        LOG.event("Destroy SWBMessageCenter...");
+        if (sock != null) {
+            sock.close();
+        }
+
+        if (server != null) {
+            server.stopServer();
+        }
     }
 
     /**
-     * Inits the.
+     * Initialize the {@link SWBMessageCenter}.
      */
-    public void init()
-    {
-        try
-        {
-            String confCS = SWBPlatform.getEnv("swb/clientServer");
-            if (!confCS.equalsIgnoreCase("SASC")) sa = false;
+    public void init() {
+        String clientServerConf = SWBPlatform.getEnv("swb/clientServer");
+        if (!clientServerConf.equalsIgnoreCase("SASC")) {
+            standalone = false;
+        }
 
-            if (!sa)
-            {
-                String localAddr=SWBPlatform.getEnv("swb/localMessageAddress"); 
-                String serverAddr=SWBPlatform.getEnv("swb/serverMessageAddress");
-                
-                if(localaddr!=null && serverAddr!=null) //Nueva version
-                {
-                    int i=localAddr.lastIndexOf(":"); //MAPS74 Ajuste para IPV6
-                    String ipaddr=localAddr.substring(0, i);
-                    int port=Integer.parseInt(localAddr.substring(i+1));
-                    
-                    i=serverAddr.lastIndexOf(":"); //MAPS74 Ajuste para IPV6
-                    String sipaddr=serverAddr.substring(0, i);
-                    int sport=Integer.parseInt(serverAddr.substring(i+1));
-                    
-                    InetAddress saddr=null;
-                    try
-                    {
-                        if (ipaddr.equalsIgnoreCase("localhost"))
+        try {
+            if (!standalone) {
+                String localAddr = SWBPlatform.getEnv("swb/localMessageAddress");
+                String serverAddr = SWBPlatform.getEnv("swb/serverMessageAddress");
+
+                if (localhost != null && serverAddr != null) {
+                    //Nueva versión de registro de mensajes
+                    int i = localAddr.lastIndexOf(':'); //MAPS74 Ajuste para IPV6
+                    String ipaddr = localAddr.substring(0, i);
+
+                    int port = Integer.parseInt(localAddr.substring(i + 1));
+                    i = serverAddr.lastIndexOf(':'); //MAPS74 Ajuste para IPV6
+
+                    String sipaddr = serverAddr.substring(0, i);
+                    int sport = Integer.parseInt(serverAddr.substring(i + 1));
+
+                    InetAddress saddr = null;
+                    try {
+                        if (ipaddr.equalsIgnoreCase("localhost")) {
                             addr = InetAddress.getLocalHost();
-                        else
+                        } else {
                             addr = InetAddress.getByName(ipaddr);
-                        
-                        if (sipaddr.equalsIgnoreCase("localhost"))
-                            saddr = InetAddress.getLocalHost();
-                        else
-                            saddr = InetAddress.getByName(sipaddr);
-                        
-                    } catch (Exception e)
-                    {
-                        log.error("SWBMessage Server IP Error:",e);
-                    }                   
-                    
-                    addAddress(addr, port);
-                    addAddress(saddr, sport);                                        
-                    
-                    String message = "ini|hel|"+addr.getHostAddress()+":"+port;
-                    
-                    synchMess = "syn|hel|"+addr.getHostAddress()+":"+port;
-                    
-                    server = new SWBMessageServer(this,addr,port);
-                    server.start();               
-                                        
-                    sendMessage(message);
-                    timer.schedule(new TimerTask(){
+                        }
 
+                        if (sipaddr.equalsIgnoreCase("localhost")) {
+                            saddr = InetAddress.getLocalHost();
+                        } else {
+                            saddr = InetAddress.getByName(sipaddr);
+                        }
+                    } catch (Exception e) {
+                        LOG.error("SWBMessage Server IP Error:", e);
+                    }
+
+                    addAddress(addr, port);
+                    addAddress(saddr, sport);
+
+                    String message = "ini|hel|" + addr.getHostAddress() + ":" + port;
+
+                    syncMessage = "syn|hel|" + addr.getHostAddress() + ":" + port;
+
+                    server = new SWBMessageServer(this, addr, port);
+                    server.start();
+
+                    long period = 1000 * 60 * 5;
+
+                    sendMessage(message);
+
+                    timer.schedule(new TimerTask() {
                         @Override
                         public void run() {
-                            sendMessage(synchMess);
+                            sendMessage(syncMessage);
                         }
-                    
+
                     }, period, period);
-                    
-                }else  //Version Enterior de Registro de Mensajes
-                {
+                } else {
+                    //Version anterior de Registro de Mensajes
                     String message = "ini|MessageServer Iniciado...";
                     byte[] data = message.getBytes();
 
                     server = new SWBMessageServer(this);
                     server.start();
 
-                    try
-                    {
+                    try {
                         String ipaddr = SWBPlatform.getEnv("swb/MessageIPAddr");
-                        if (ipaddr.equalsIgnoreCase("localhost"))
+                        if (ipaddr.equalsIgnoreCase("localhost")) {
                             addr = InetAddress.getLocalHost();
-                        else
+                        } else {
                             addr = InetAddress.getByName(ipaddr);
-                    } catch (Exception e)
-                    {
-                        log.error("SWBMessage Server IP Error:",e);
+                        }
+                    } catch (Exception e) {
+                        LOG.error("SWBMessage Server IP Error:", e);
                     }
 
                     //get send address
-                    int port=Integer.parseInt(SWBPlatform.getEnv("swb/sendMessagePort"));
-                    String sendAddr=SWBPlatform.getEnv("swb/sendMessageIPAddrs");
-                    if(sendAddr==null)
-                    {
+                    int port = Integer.parseInt(SWBPlatform.getEnv("swb/sendMessagePort"));
+                    String sendAddr = SWBPlatform.getEnv("swb/sendMessageIPAddrs");
+
+                    if (sendAddr == null) {
                         String ip = addr.getHostAddress();
                         InetAddress saddr = InetAddress.getByName(ip.substring(0, ip.lastIndexOf('.')) + ".255");
-                        log.info("BroadCast Addr:"+saddr+":"+port);
+                        LOG.info("BroadCast Addr:" + saddr + ":" + port);
                         packets.add(new DatagramPacket(data, data.length, saddr, port));
-                    }else
-                    {
-                        DatagramPacket packet=null;
+                    } else {
+                        DatagramPacket packet = null;
                         int aport;
-                        boolean fp=false;
-                        StringTokenizer st=new StringTokenizer(sendAddr,":,;",true);
-                        while(st.hasMoreTokens())
-                        {
-                            String aux=st.nextToken();
-                            try
-                            {
-                                if(aux.equals(":"))
-                                {
-                                    fp=true;
-                                }else if(aux.equals(",") || aux.equals(";"))
-                                {
-                                    fp=false;
-                                }else if(aux.trim().length()>0)
-                                {
-                                    if(fp)
-                                    {
-                                        aport=Integer.parseInt(aux.trim());
+                        boolean fp = false;
+                        StringTokenizer st = new StringTokenizer(sendAddr, ":,;", true);
+                        while (st.hasMoreTokens()) {
+                            String aux = st.nextToken();
+                            try {
+                                if (aux.equals(":")) {
+                                    fp = true;
+                                } else if (aux.equals(",") || aux.equals(";")) {
+                                    fp = false;
+                                } else if (aux.trim().length() > 0) {
+                                    if (fp) {
+                                        aport = Integer.parseInt(aux.trim());
                                         packet.setPort(aport);
-                                    }else
-                                    {
+                                    } else {
                                         InetAddress saddr = InetAddress.getByName(aux.trim());
-                                        packet=new DatagramPacket(data, data.length, saddr, port);
+                                        packet = new DatagramPacket(data, data.length, saddr, port);
                                         packets.add(packet);
                                     }
                                 }
-                            }catch(Exception e){log.error(e);}
+                            } catch (Exception e) {
+                                LOG.error(e);
+                            }
                         }
-                        Iterator<DatagramPacket> it=packets.iterator();
-                        while(it.hasNext())
-                        {
-                            DatagramPacket apacket=(DatagramPacket)it.next();
-                            log.info("Send Address "+apacket.getAddress()+":"+apacket.getPort());
-                        }                    
-                    }
 
+                        for (DatagramPacket apacket : packets) {
+                            LOG.info("Send Address " + apacket.getAddress() + ":" + apacket.getPort());
+                        }
+                    }
                     sendMessage(message);
                 }
             }
-        } catch (Exception e)
-        {
-            log.error("SWBMessageCenter Init Error...",e);
+        } catch (Exception e) {
+            LOG.error("SWBMessageCenter Init Error...", e);
         }
     }
-    
+
 
     /**
      * Refresh.
      */
-    public void refresh()
-    {
+    public void refresh() {
     }
 
     /**
-     * Send message.
-     * 
+     * Sends a message.
+     *
      * @param message the message
      */
-    public void sendMessage(String message)
-    {
-        if (!sa && packets.size()>0)
-        {
-            try
-            {
-                if (sock != null)
-                {
-                    byte[] data = message.getBytes();
-                    Iterator<DatagramPacket> it=packets.iterator();
-                    while(it.hasNext())
-                    {
-                        DatagramPacket refPacket=it.next();
-                        DatagramPacket packet=new DatagramPacket(data, data.length, refPacket.getAddress(), refPacket.getPort());
-                        sock.send(packet);
-                    }
-                } else
-                {
-                    if (addr != null)
-                    {
-                        DatagramSocket aux = new DatagramSocket();   //optener una puerto de salida valido...
+    public void sendMessage(String message) {
+        if (!standalone && !packets.isEmpty()) {
+            //Try to get socket connection
+            if (null == sock) {
+                try {
+                    if (addr != null) {
+                        DatagramSocket aux = new DatagramSocket();   //obtener un puerto de salida valido...
                         int x = aux.getLocalPort();
                         aux.close();
                         sock = new DatagramSocket(x, addr);
-                    } else
-                    {
-                        sock = new DatagramSocket();                    
+                    } else {
+                        sock = new DatagramSocket();
                     }
-                    byte[] data = message.getBytes();
+                } catch (SocketException sex) {
+                    LOG.error("SWBMessageCenter Socket Error:" + message, sex);
+                }
+            }
 
-                    Iterator<DatagramPacket> it=packets.iterator();
-                    while(it.hasNext())
-                    {
-                        DatagramPacket refPacket=(DatagramPacket)it.next();
-                        DatagramPacket packet=new DatagramPacket(data, data.length, refPacket.getAddress(), refPacket.getPort());
+            //Send packets
+            if (null != sock) {
+                try {
+                    byte[] data = message.getBytes();
+                    for (DatagramPacket refPacket : packets) {
+                        DatagramPacket packet = new DatagramPacket(data, data.length, refPacket.getAddress(), refPacket.getPort());
                         sock.send(packet);
                     }
+                } catch (IOException ioex) {
+                    LOG.error("SWBMessageCenter SendMessage Error:" + message, ioex);
                 }
-            } catch (IOException e)
-            {
-                log.error("SWBMessageCenter SendMessage Error:" + message, e);
             }
-        } else
-        {
-            incomingMessage(message, localaddr);
+        } else {
+            incomingMessage(message, localhost);
         }
     }
 
     /**
-     * Incoming message.
-     * 
+     * Prepare incoming message for queuing.
+     *
      * @param message the message
-     * @param addr the addr
+     * @param addr    the address
      */
-    public void incomingMessage(String message, String addr)
-    {
+    public void incomingMessage(String message, String addr) {
         StringBuilder logbuf = new StringBuilder(message.length() + 20);
         logbuf.append(message.substring(0, 4));
-        logbuf.append(df.format(new Date()));
+        logbuf.append(dateFormat.format(new Date()));
         logbuf.append(message.substring(3));
         pushMessage(logbuf.toString());
-        log.debug("Message from " + addr + ":(" + message+")");
+        LOG.debug("Message from " + addr + ":(" + message + ")");
     }
 
     /**
-     * Push message.
-     * 
+     * Adds a message to the queue.
+     *
      * @param message the message
      */
-    public void pushMessage(String message)
-    {
-        synchronized(messages)
-        {
+    public void pushMessage(String message) {
+        synchronized (messages) {
             messages.addFirst(message);
         }
     }
 
     /**
-     * Pop message.
-     * 
-     * @return the string
-     * @return
+     * Pops a message from the queue.
+     *
+     * @return message string or empty string if pop fails.
      */
-    public String popMessage()
-    {
-        try
-        {
-            synchronized(messages)
-            {
-                return (String) messages.removeLast();
+    public String popMessage() {
+        try {
+            synchronized (messages) {
+                return messages.removeLast();
             }
-        } catch (Exception e)
-        {
-            synchronized(messages)
-            {
+        } catch (Exception e) {
+            synchronized (messages) {
                 messages.clear();
             }
-            log.error("SWBMessageCenter Pop Message Error...", e);
+            LOG.error("SWBMessageCenter Pop Message Error...", e);
         }
         return "";
     }
 
     /**
-     * registra el objeto observador para que pueda recibir notoficaciones de cambios.
-     * 
-     * @param key the key
-     * @param obs the obs
+     * Register a {@link SWBObserver} object for message notifications.
+     *
+     * @param key observer name.
+     * @param obs the {@link SWBObserver} object
      */
-    public synchronized void registerObserver(String key, SWBObserver obs)
-    {
+    public synchronized void registerObserver(String key, SWBObserver obs) {
         observers.put(key, obs);
     }
 
     /**
-     * Removes the observer.
-     * 
-     * @param key the key
+     * Removes a {@link SWBObserver} object.
+     *
+     * @param key the observer name.
      */
-    public synchronized void removeObserver(String key)
-    {
+    public synchronized void removeObserver(String key) {
         observers.remove(key);
     }
 
     /**
-     * Gets the observers.
-     * 
+     * Gets an iterator to the observers.
+     *
      * @return the observers
      */
-    public Iterator getObservers()
-    {
-        return new ArrayList<SWBObserver>(observers.values()).iterator();
+    public Iterator getObservers() {
+        return new ArrayList<>(observers.values()).iterator();
     }
 
     /**
-     * Gets the observer.
-     * 
-     * @param key the key
-     * @return the observer
+     * Gets an observer.
+     *
+     * @param key the observer name.
+     * @return the {@link SWBObserver}
      */
-    public SWBObserver getObserver(String key)
-    {
+    public SWBObserver getObserver(String key) {
         return observers.get(key);
     }
 
     /**
-     * Checks for messages.
-     * 
-     * @return true, if successful
-     * @return
+     * Checks for messages in queue.
+     *
+     * @return true if there are queued messages.
      */
-    public boolean hasMessages()
-    {
+    public boolean hasMessages() {
         return !messages.isEmpty();
     }
 
     /**
-     * Message size.
-     * 
-     * @return the int
+     * Gets message queue size.
+     *
+     * @return the queue size.
      */
-    public int messageSize()
-    {
+    public int messageSize() {
         return messages.size();
     }
 
     /**
-     * Gets the address.
-     * 
-     * @return the address
-     * @return
+     * Gets the socket address.
+     *
+     * @return socket address.
      */
-    public String getAddress()
-    {
-        if (sock != null)
+    public String getAddress() {
+        if (sock != null) {
             return sock.getLocalAddress().getHostAddress();
-        else
-            return localaddr;
+        } else {
+            return localhost;
+        }
     }
 
     /**
-     * Gets the message server.
-     * 
-     * @return the message server
+     * Gets the {@link SWBMessageServer}.
+     *
+     * @return the message server.
      */
-    public SWBMessageServer getMessageServer()
-    {
+    public SWBMessageServer getMessageServer() {
         return server;
     }
-    
-    public synchronized boolean addAddress(InetAddress addr, int port)
-    {  
-        Iterator<DatagramPacket> it=packets.iterator();
-        
-        boolean contains=false;
-        while (it.hasNext())
-        {
-            DatagramPacket datagramPacket = it.next();
-            if(datagramPacket.getAddress().equals(addr) && datagramPacket.getPort()==port)
-            {
-                contains=true;
+
+    /**
+     * Adds an address to the address list for sending messages.
+     *
+     * @param addr {@link InetAddress} object.
+     * @param port Connection port.
+     * @return true if address is added, false if address already exists in a DatagramPacket.
+     */
+    public synchronized boolean addAddress(InetAddress addr, int port) {
+        boolean addressExists = false;
+        for (DatagramPacket datagramPacket : packets) {
+            if (datagramPacket.getAddress().equals(addr) && datagramPacket.getPort() == port) {
+                addressExists = true;
+                break;
             }
         }
-        
-        if(!contains)
-        {
+
+        if (!addressExists) {
             byte[] data = "".getBytes();
             packets.add(new DatagramPacket(data, data.length, addr, port));
-        }    
-        return !contains;
-    }
-    
-    public String getListAddress()
-    {
-        StringBuilder ret=new StringBuilder();
-        Iterator<DatagramPacket> it=packets.iterator();
-        while (it.hasNext())
-        {
-            DatagramPacket datagramPacket = it.next();
-            ret.append(datagramPacket.getAddress().getHostAddress());
-            ret.append(":");
-            ret.append(datagramPacket.getPort());
-            if(it.hasNext())ret.append("|");
-        }   
-        return ret.toString();
+        }
+
+        return !addressExists;
     }
 
+    /**
+     * @return
+     * @deprecated for naming conventions. Use {@link #getAddressList()}
+     */
+    @Deprecated
+    public String getListAddress() {
+        return getAddressList();
+    }
+
+    /**
+     * Gets a pipe separated String with all addresses for sending messages.
+     *
+     * @return pipe separated String with all addresses for sending messages
+     */
+    public String getAddressList() {
+        StringBuilder ret = new StringBuilder();
+        Iterator<DatagramPacket> it = packets.iterator();
+
+        while (it.hasNext()) {
+            DatagramPacket datagramPacket = it.next();
+            ret.append(datagramPacket.getAddress().getHostAddress())
+                    .append(":").append(datagramPacket.getPort());
+
+            if (it.hasNext()) {
+                ret.append("|");
+            }
+        }
+        return ret.toString();
+    }
 }

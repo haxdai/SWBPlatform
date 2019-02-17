@@ -469,7 +469,7 @@ public class CodeGenerator {
             javaClassContent.append("public class SWBContext extends SWBContextBase").append("{").append(ENTER);
 
             javaClassContent
-                    .append("    private static org.semanticwb.Logger log = SWBUtils.getLogger(SWBContext.class);")
+                    .append("    private static org.semanticwb.Logger LOG = SWBUtils.getLogger(SWBContext.class);")
                     .append(ENTER);
 
             javaClassContent.append("    private static SWBContext instance = null;").append(ENTER).append(ENTER);
@@ -492,7 +492,7 @@ public class CodeGenerator {
             javaClassContent.append(buildJavaDocBlock(1, "Constructor."));
             javaClassContent.append(buildMethodDefinition("private", null,
                     swbContextClsName, null, null, 1,
-                    "log.event(\"Initializing SemanticWebBuilder Context...\");"));
+                    "LOG.event(\"Initializing SemanticWebBuilder Context...\");"));
 
             javaClassContent.append(ENTER);
 

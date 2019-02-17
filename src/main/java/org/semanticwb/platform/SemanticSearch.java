@@ -43,6 +43,7 @@ import com.hp.hpl.jena.vocabulary.RDF;
  *
  * @author Javier Solís {javier.solis.g}
  */
+//TODO: Review this class for deletion. It is not used.
 public class SemanticSearch
 {
     private static final Logger log= SWBUtils.getLogger(SemanticSearch.class);    

@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -17,8 +17,7 @@
  * de la misma.
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
- * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ * dirección electrónica: http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.platform;
 
@@ -29,605 +28,636 @@ import com.hp.hpl.jena.ontology.Restriction;
 import com.hp.hpl.jena.rdf.model.Property;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
+
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+
 import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.SWBUtils;
 import org.semanticwb.base.util.URLEncoder;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class SemanticProperty.
- * 
+ * Class to encapsulate a property from an ontology model using jena {@link Property} as
+ * internal representation.
+ *
  * @author Jei
  */
-public class SemanticProperty
-{
-
-    /** The log. */
-    private static Logger log=SWBUtils.getLogger(SemanticProperty.class);
-
-    /** The m_prop. */
-    private Property m_prop;
-    
-    /** The m_inverse. */
-    private SemanticProperty m_inverse;
-    
-    /** The is object property. */
-    private Boolean isObjectProperty = null;
-    
-    /** The is data type property. */
-    private Boolean isDataTypeProperty = null;
-    
-    /** The has inverse. */
-    private Boolean hasInverse = null;
-    
-    /** The is inverse. */
-    private boolean isInverse = false;
-    
-    /** The is external invocation. */
-    private Boolean isExternalInvocation = null;
-    
-    /** The is inherit property. */
-    private Boolean isInheritProperty = null;
-    
-    /** The is not observable. */
-    private Boolean isNotObservable = null;
-    
-    /** The is not code generation. */
-    private Boolean isNotCodeGeneration = null;
-    
-    /** The is remove dependency. */
-    private Boolean isRemoveDependency = null;
-    
-    /** The is clone dependency. */
-    private Boolean isCloneDependency = null;
-    
-    /** The is heraquical relation. */
-    private Boolean isHeraquicalRelation = null;
-    
-    private Boolean hasHerarquicalFilterClass=null;
-    private SemanticClass herarquicalFilterClass =null;
-    
-    /** The is required. */
-    private Boolean isRequired = null;
-    
-    /** The is used as name. */
-    private Boolean isUsedAsName = null;
-    
-    /** The is localeable. */
-    private Boolean isLocaleable = null;
-    
-    /** The m_property code name. */
-    private String m_propertyCodeName = null;
-    
-    /** The m_default value. */
-    private String m_defaultValue = null;
-    
-    /** The display property. */
-    private SemanticObject displayProperty = null;
-    
-    /** The disp property. */
-    private boolean dispProperty = false;
-    
-    /** The cardinality. */
-    private int cardinality = 0;
-    
-    /** The cardinality check. */
-    private boolean cardinalityCheck = false;
-    
-    /** The range check. */
-    private boolean rangeCheck = false;
-    
-    /** The range. */
-    private Resource range = null;
-    
-    /** The restrictions. */
-    private HashMap<String, ArrayList<SemanticRestriction>> restrictions = null;
-    
-    /** The allvalues. */
-    private HashMap<String, SemanticRestriction> frestrictions = null;
-
-    /** The m_observers. */
-    private List<SemanticObserver> m_observers = null;
+public class SemanticProperty {
+    private static final Logger LOG = SWBUtils.getLogger(SemanticProperty.class);
 
     /**
-     * Instantiates a new semantic property.
-     * 
-     * @param prop the prop
+     * Internal representation of the Property.
      */
-    public SemanticProperty(Property prop)
-    {
+    private Property m_prop;
+
+    /**
+     * Inverse property related to this Property.
+     */
+    private SemanticProperty m_inverse;
+
+    /**
+     * Flag to set Property as ObjectProperty.
+     */
+    private Boolean objectProperty = null;
+
+    /**
+     * Flag to set Property as DataTypeProperty.
+     */
+    private Boolean dataTypeProperty = null;
+
+    /**
+     * Flag to set property as having inverse property.
+     */
+    private Boolean hasInverse = null;
+
+    /**
+     * Flag to set property as inverse property.
+     */
+    private boolean inverse = false;
+
+    /**
+     * Flag to set property as external.
+     */
+    private Boolean externalInvocation = null;
+
+    /**
+     * Flag to set property as inherit.
+     */
+    private Boolean inheritProperty = null;
+
+    /**
+     * Flag to set property as not observable.
+     */
+    private Boolean notObservable = null;
+
+    /**
+     * Flag to set property as not code generation.
+     */
+    private Boolean notCodeGeneration = null;
+
+    /**
+     * Flag to set property as remove dependency.
+     */
+    private Boolean removeDependency = null;
+
+    /**
+     * Flag to set property as clone dependency.
+     */
+    private Boolean cloneDependency = null;
+
+    /**
+     * Flag to set property as hierarchical relation.
+     */
+    private Boolean hierarchicalRelation = null;
+
+    private Boolean hasHierarchicalFilterClass = null;
+    private SemanticClass hierarchicalFilterClass = null;
+
+    /**
+     * The is required.
+     */
+    private Boolean required = null;
+
+    /**
+     * The is used as name.
+     */
+    private Boolean usedAsName = null;
+
+    /**
+     * The is localeable.
+     */
+    private Boolean localeable = null;
+
+    /**
+     * The m_property code name.
+     */
+    private String codeName = null;
+
+    /**
+     * The m_default value.
+     */
+    private String defaultValue = null;
+
+    /**
+     * The display property.
+     */
+    private SemanticObject displayProperty = null;
+
+    /**
+     * The disp property.
+     */
+    private boolean dispProperty = false;
+
+    /**
+     * The cardinality.
+     */
+    private int cardinality = 0;
+
+    /**
+     * The cardinality check.
+     */
+    private boolean cardinalityCheck = false;
+
+    /**
+     * The range check.
+     */
+    private boolean rangeCheck = false;
+
+    /**
+     * The range.
+     */
+    private Resource range = null;
+
+    /**
+     * The restrictions.
+     */
+    private HashMap<String, ArrayList<SemanticRestriction>> restrictions = null;
+
+    /**
+     * The allvalues.
+     */
+    private HashMap<String, SemanticRestriction> frestrictions = null;
+
+    /**
+     * SemanticObserver list for change notifications.
+     */
+    private List<SemanticObserver> observers;
+
+    /**
+     * Constructor. Creates a new instance of {@link SemanticProperty}.
+     *
+     * @param prop the base Jena {@link Property} object.
+     */
+    public SemanticProperty(Property prop) {
         this.m_prop = prop;
-        if (m_prop instanceof OntProperty)
-        {
-            if (hasInverse())
-            {
-                m_inverse = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(((OntProperty) m_prop).getInverse());
-                m_inverse.isInverse = true;
-                m_inverse.m_inverse = this;
-                //System.out.println(prop+" hasInverse "+m_inverse);
-            }
-
+        if (m_prop instanceof OntProperty && hasInverse) {
+            m_inverse = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(((OntProperty) m_prop).getInverse());
+            m_inverse.inverse = true;
+            m_inverse.m_inverse = this;
         }
-
-        m_observers=Collections.synchronizedList(new ArrayList());
+        observers = Collections.synchronizedList(new ArrayList<>());
     }
 
     /**
-     * Load restrictions.
+     * Loads property restriction definitions.
      */
-    private void loadRestrictions()
-    {
-        restrictions = new HashMap();
-        frestrictions = new HashMap();
+    private void loadRestrictions() {
+        restrictions = new HashMap<>();
+        frestrictions = new HashMap<>();
         Iterator<Restriction> it = ((OntProperty) m_prop).listReferringRestrictions();
-        while (it.hasNext())
-        {
+        while (it.hasNext()) {
             Restriction restriction = it.next();
-            //System.out.println(prop+" restriction "+restriction);
+
             Iterator<OntClass> it2 = restriction.listSubClasses();
-            while (it2.hasNext())
-            {
+            while (it2.hasNext()) {
                 OntClass ontClass = it2.next();
+
                 ArrayList<SemanticRestriction> list = restrictions.get(ontClass.getURI());
-                if (list == null)
-                {
-                    list = new ArrayList();
+                if (list == null) {
+                    list = new ArrayList<>();
                     restrictions.put(ontClass.getURI(), list);
                 }
                 list.add(new SemanticRestriction(restriction));
-                //System.out.println(prop+" restrictioncls "+ontClass);
             }
         }
     }
 
     /**
-     * Gets the semantic object.
-     * 
+     * Gets the {@link SemanticObject} related to this property.
+     *
      * @return the semantic object
      */
-    public SemanticObject getSemanticObject()
-    {
+    public SemanticObject getSemanticObject() {
         return SemanticObject.createSemanticObject(getURI());
     }
 
     /**
-     * Gets the rDF property.
-     * 
-     * @return the rDF property
+     * Gets the internal {@link Property} object.
+     *
+     * @return the internal Property object.
      */
-    public Property getRDFProperty()
-    {
+    public Property getRDFProperty() {
         return m_prop;
     }
 
     /**
-     * Gets the name.
-     * 
-     * @return the name
+     * Gets the name of this property.
+     *
+     * @return the property name.
+     * @see Property#getLocalName().
      */
-    public String getName()
-    {
+    public String getName() {
         return m_prop.getLocalName();
     }
 
     /**
-     * Gets the prefix.
-     * 
-     * @return the prefix
+     * Gets the prefix of this property.
+     *
+     * @return the property prefix
      */
-    public String getPrefix()
-    {
+    public String getPrefix() {
         return m_prop.getModel().getNsURIPrefix(m_prop.getNameSpace());
     }
 
     /**
-     * Gets the prop id.
-     * 
-     * @return the prop id
+     * Gets the property ID (prefix + name).
+     *
+     * @return the property ID
      */
-    public String getPropId()
-    {
+    public String getPropId() {
         return getPrefix() + ":" + getName();
     }
 
     /**
-     * Gets the label.
-     * 
-     * @return the label
+     * Gets the string label associated to this property ignoring language.
+     *
+     * @return the property label.
      */
-    public String getLabel()
-    {
+    public String getLabel() {
         return getLabel(null);
     }
 
     /**
-     * Gets the Comment.
+     * Gets the string label associated to this property matching the given <code>lang</code>.
      *
-     * @return the label
+     * @param lang the language attribute for the desired label.
+     * @return the property label.
      */
-    public String getComment()
-    {
+    public String getLabel(String lang) {
+        if (m_prop instanceof OntProperty) {
+            return ((OntProperty) m_prop).getLabel(lang);
+        }
+        return null;
+    }
+
+    /**
+     * Gets the string comment associated to this property ignoring language.
+     *
+     * @return the property comment.
+     */
+    public String getComment() {
         return getComment(null);
     }
 
     /**
-     * Gets the label.
+     * Gets the string comment associated to this property matching the given <code>lang</code>.
      *
-     * @param lang the lang
-     * @return the label
+     * @param lang the language attribute for the desired comment.
+     * @return the property comment.
      */
-    public String getComment(String lang)
-    {
-        String ret = null;
-        if (m_prop instanceof OntProperty)
-        {
-            ret = ((OntProperty) m_prop).getComment(lang);
+    public String getComment(String lang) {
+        if (m_prop instanceof OntProperty) {
+            return ((OntProperty) m_prop).getComment(lang);
         }
-        return ret;
+        return null;
     }
 
     /**
-     * Gets the label.
-     * 
-     * @param lang the lang
-     * @return the label
+     * Gets the Property code name defined in the SWBOntology.
+     *
+     * @return the Property code name.
      */
-    public String getLabel(String lang)
-    {
-        String ret = null;
-        if (m_prop instanceof OntProperty)
-        {
-            ret = ((OntProperty) m_prop).getLabel(lang);
-        }
-        return ret;
-    }
+    public String getPropertyCodeName() {
+        if (codeName == null) {
+            //TODO: Check why try-catch is required here
+            try {
+                Property prop = SWBPlatform.getSemanticMgr().getVocabulary()
+                        .getSemanticProperty(SemanticVocabulary.SWB_ANNOT_PROPERTYCODENAME).getRDFProperty();
 
-    /**
-     * Gets the property code name.
-     * 
-     * @return the property code name
-     */
-    public String getPropertyCodeName()
-    {
-        if (m_propertyCodeName == null)
-        {
-            try
-            {
-                Property prop = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(SemanticVocabulary.SWB_ANNOT_PROPERTYCODENAME).getRDFProperty();
-                //System.out.println("Class:"+m_class+" ->"+className);
-                m_propertyCodeName = m_prop.getRequiredProperty(prop).getString();
-                //System.out.println("Class:"+m_class+" ->"+className);
-                if (m_propertyCodeName == null)
-                {
-                    m_propertyCodeName = getName();
+                codeName = m_prop.getRequiredProperty(prop).getString();
+                if (codeName == null) {
+                    codeName = getName();
                 }
+            } catch (Exception pnf) {
+                codeName = getName();
             }
-            catch (Exception pnf)
-            {
-                m_propertyCodeName = getName();
-            }
-            //log.trace("getClassName:"+m_className);
         }
-        return m_propertyCodeName;
+        return codeName;
     }
 
     /**
-     * Gets the default value.
-     * 
-     * @return the default value
+     * Gets the default value of this property defined in SWBOntology.
+     *
+     * @return the default value for the property.
      */
-    public String getDefaultValue()
-    {
-        if (m_defaultValue == null)
-        {
-            Property prop = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(SemanticVocabulary.SWB_PROP_DEFAULTVALUE).getRDFProperty();
+    public String getDefaultValue() {
+        if (defaultValue == null) {
+            Property prop = SWBPlatform.getSemanticMgr().getVocabulary()
+                    .getSemanticProperty(SemanticVocabulary.SWB_PROP_DEFAULTVALUE).getRDFProperty();
+
             Statement st = m_prop.getProperty(prop);
-            if (st != null)
-            {
-                m_defaultValue = st.getString();
+            if (st != null) {
+                defaultValue = st.getString();
             }
         }
-        if(m_defaultValue!=null && m_defaultValue.charAt(0)=='{')
-        {
-            if(m_defaultValue.equals("{invtime}"))return ""+(Long.MAX_VALUE-System.currentTimeMillis());
-            if(m_defaultValue.equals("{time}"))return ""+(System.currentTimeMillis());
+
+        if (defaultValue != null && defaultValue.charAt(0) == '{') {
+            if (defaultValue.equals("{invtime}")) return "" + (Long.MAX_VALUE - System.currentTimeMillis());
+            if (defaultValue.equals("{time}")) return "" + (System.currentTimeMillis());
         }
-        return m_defaultValue;
+
+        return defaultValue;
     }
 
     /**
-     * Gets the uRI.
-     * 
-     * @return the uRI
+     * Gets the URI for this property.
+     *
+     * @return the property URI.
      */
-    public String getURI()
-    {
+    public String getURI() {
         return m_prop.getURI();
     }
 
     /**
-     * Regresa URI codificado para utilizar en ligas de html.
-     * 
-     * @return URI Codificado
+     * Gets the encoded property URI.
+     *
+     * @return encoded property URI.
      */
-    public String getEncodedURI()
-    {
+    public String getEncodedURI() {
         return URLEncoder.encode(getURI());
     }
 
     /**
-     * Gets the required property.
-     * 
-     * @param prop the prop
-     * @return the required property
+     * Gets the value of a required property. A required property is considered any property relevant
+     * to SemanticOntology for code-generation purposes.
+     *
+     * @param prop the {@link SemanticProperty} to get value from.
+     * @return SemanticLiteral holding Property value.
      */
-    public SemanticLiteral getRequiredProperty(SemanticProperty prop)
-    {
-        SemanticLiteral ret = null;
+    public SemanticLiteral getRequiredProperty(SemanticProperty prop) {
         Statement st = m_prop.getProperty(prop.getRDFProperty());
-        if (st != null)
-        {
-            ret = new SemanticLiteral(st);
+        if (st != null) {
+            return new SemanticLiteral(st);
         }
-        return ret;
+        return null;
     }
 
     /**
-     * Checks if is localeable.
-     * 
-     * @return true, if is localeable
+     * Checks if this property is internationalized using SWBPlatform facilities (locales)
+     * as defined in SWBOntology.
+     *
+     * @return true if property internationalized.
      */
-    public boolean isLocaleable()
-    {
-        if (isLocaleable == null)
-        {
-            isLocaleable = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_LOCALEABLE));
-            if (st != null)
-            {
-                isLocaleable = st.getBoolean();
+    public boolean isLocaleable() {
+        if (localeable == null) {
+            localeable = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_LOCALEABLE));
+
+            if (st != null) {
+                localeable = st.getBoolean();
             }
         }
-        return isLocaleable;
+        return localeable;
     }
 
     /**
-     * Checks if is used as name.
-     * 
-     * @return true, if is used as name
+     * Checks whether this property can be used as display name for a SemanticObject instance,
+     * as defined in SWBOntology.
+     *
+     * @return true, if can be used as display name.
      */
-    public boolean isUsedAsName()
-    {
-        if (isUsedAsName == null)
-        {
-            isUsedAsName = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_ANNOT_CANUSEDASNAME));
-            if (st != null)
-            {
-                isUsedAsName = st.getBoolean();
+    public boolean isUsedAsName() {
+        if (usedAsName == null) {
+            usedAsName = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema()
+                    .getRDFOntModel().getProperty(SemanticVocabulary.SWB_ANNOT_CANUSEDASNAME));
+
+            if (st != null) {
+                usedAsName = st.getBoolean();
             }
         }
-        return isUsedAsName;
+        return usedAsName;
     }
 
     /**
-     * Checks if is required.
-     * 
-     * @return true, if is required
+     * Checks whether this property is required, as defined in SWBOntology.
+     *
+     * @return true, if is required.
      */
-    public boolean isRequired()
-    {
-        if (isRequired == null)
-        {
-            isRequired = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_REQUIRED));
-            if (st != null)
-            {
-                isRequired = st.getBoolean();
+    public boolean isRequired() {
+        if (required == null) {
+            required = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_REQUIRED));
+
+            if (st != null) {
+                required = st.getBoolean();
             }
         }
-        return isRequired;
+        return required;
     }
 
     /**
-     * Si esta propiedad se utiliza para definir la relacio padre-hijo en el arbol de navegacion.
-     * 
-     * @return true, if is heraquical relation
      * @return
+     * @deprecated for naming conventions. Use {@link #isHierachicalRelation()}.
+     * Si esta propiedad se utiliza para definir la relacio padre-hijo en el arbol de navegacion.
      */
-    public boolean isHeraquicalRelation()
-    {
-        if (isHeraquicalRelation == null)
-        {
-            isHeraquicalRelation = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_HERARQUICALRELATION));
-            if (st != null)
-            {
-                isHeraquicalRelation = st.getBoolean();
+    @Deprecated
+    public boolean isHeraquicalRelation() {
+        return isHierachicalRelation();
+    }
+
+    /**
+     * Checks whether this property is used to define a parent-child relation for tree-like rendering
+     * of objects.
+     *
+     * @return true if this property is a hierarchical relation property.
+     */
+    public boolean isHierachicalRelation() {
+        if (hierarchicalRelation == null) {
+            hierarchicalRelation = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_HERARQUICALRELATION));
+
+            if (st != null) {
+                hierarchicalRelation = st.getBoolean();
             }
         }
-        return isHeraquicalRelation;
+        return hierarchicalRelation;
     }
-    
+
     /**
-     * Si esta propiedad se utiliza para definir la relacio padre-hijo en el arbol de navegacion.
-     * 
-     * @return true, if is heraquical relation
      * @return
+     * @deprecated for naming conventions. Use {@link #getHierarchicalRelationFilterClass()}.
+     * Si esta propiedad se utiliza para definir la relacio padre-hijo en el arbol de navegacion.
      */
-    public SemanticClass getHerarquicalRelationFilterClass()
-    {
-        if (hasHerarquicalFilterClass == null)
-        {
-            hasHerarquicalFilterClass = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_HERARQUICALRELATIONFILTERCLASS));
-            if (st != null)
-            {
-                Resource res=st.getResource();       
-                if(res!=null)
-                {
-                    herarquicalFilterClass=SWBPlatform.getSemanticMgr().getVocabulary().getSemanticClass(res.getURI());
+    @Deprecated
+    public SemanticClass getHerarquicalRelationFilterClass() {
+        return getHierarchicalRelationFilterClass();
+    }
+
+    /**
+     * Gets {@link SemanticClass} to filter in a parent-child relation property.
+     *
+     * @return SemanticClass for parent-child filtering.
+     */
+    public SemanticClass getHierarchicalRelationFilterClass() {
+        if (hasHierarchicalFilterClass == null) {
+            hasHierarchicalFilterClass = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_HERARQUICALRELATIONFILTERCLASS));
+
+            if (st != null) {
+                Resource res = st.getResource();
+                if (res != null) {
+                    hierarchicalFilterClass = SWBPlatform.getSemanticMgr()
+                            .getVocabulary().getSemanticClass(res.getURI());
                 }
-                hasHerarquicalFilterClass=true;
+                hasHierarchicalFilterClass = true;
             }
         }
-        return herarquicalFilterClass;
-    }    
-    
-    /**
-     * Esta propiedad se utiliza para eliminar el objeto relacionado, si el objeto de dominio se elimina.
-     * 
-     * @return true, if is removes the dependency
-     * @return
-     */
-    public boolean isRemoveDependency()
-    {
-        if (isRemoveDependency == null)
-        {
-            isRemoveDependency = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_REMOVEDEPENDENCY));
-            if (st != null)
-            {
-                isRemoveDependency = st.getBoolean();
-            }
-        }
-        return isRemoveDependency;
+        return hierarchicalFilterClass;
     }
 
     /**
-     * Esta propiedad se utiliza para clonar el objeto relacionado, si el objeto de dominio se clona.
-     * 
-     * @return true, if is clone dependency
-     * @return
+     * Checks whether this property is described as a remove dependency property in SWBOntology.
+     * Range values of this kind of properties are removed when domain objects are removed.
+     *
+     * @return true if property is described as remove dependency.
      */
-    public boolean isCloneDependency()
-    {
-        if (isCloneDependency == null)
-        {
-            isCloneDependency = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_CLONEDEPENDENCY));
-            if (st != null)
-            {
-                isCloneDependency = st.getBoolean();
+    public boolean isRemoveDependency() {
+        if (removeDependency == null) {
+            removeDependency = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_REMOVEDEPENDENCY));
+
+            if (st != null) {
+                removeDependency = st.getBoolean();
             }
         }
-        return isCloneDependency;
+        return removeDependency;
     }
 
     /**
-     * Esta propiedad se utiliza para desabilitar el log de cambios de la propiedad.
-     * 
-     * @return true, if is not observable
-     * @return
+     * Checks whether this property is described as a clone dependency property in SWBOntology.
+     * Range values of this kind of properties are cloned when domain objects are cloned.
+     *
+     * @return true if property is described as clone dependency.
      */
-    public boolean isNotObservable()
-    {
-        if (isNotObservable == null)
-        {
-            isNotObservable = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_NOTOBSERVABLE));
-            if (st != null)
-            {
-                isNotObservable = st.getBoolean();
+    public boolean isCloneDependency() {
+        if (cloneDependency == null) {
+            cloneDependency = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_CLONEDEPENDENCY));
+
+            if (st != null) {
+                cloneDependency = st.getBoolean();
             }
         }
-        return isNotObservable;
+        return cloneDependency;
     }
 
     /**
-     * Esta propiedad se utiliza para desabilitar la generacion de código de la propiedad.
-     * 
-     * @return true, if is not code generation
-     * @return
+     * Checks whether this property is not observable. Non-observable properties do not write changes to LOG.
+     *
+     * @return true if property is not observable.
      */
-    public boolean isNotCodeGeneration()
-    {
-        if (isNotCodeGeneration == null)
-        {
-            isNotCodeGeneration = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_NOTCODEGENERATION));
-            if (st != null)
-            {
-                isNotCodeGeneration = st.getBoolean();
+    public boolean isNotObservable() {
+        //TODO: Discuss logic and name change from isNotObservable to isObservable to avoid confusion, setting default value to be observable
+        if (notObservable == null) {
+            notObservable = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_NOTOBSERVABLE));
+
+            if (st != null) {
+                notObservable = st.getBoolean();
             }
         }
-        return isNotCodeGeneration;
+        return notObservable;
     }
 
     /**
-     * Define si la apropiedad es heredable a los hijos.
-     * 
-     * @return true, if is inherit property
-     * @return
+     * Checks whether code-generation engine will produce code for this property, as described in SWBOntology.
+     *
+     * @return true if no code will be generated for this property.
      */
-    public boolean isInheritProperty()
-    {
-        if (isInheritProperty == null)
-        {
-            isInheritProperty = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_INHERITPROPERTY));
-            if (st != null)
-            {
-                isInheritProperty = st.getBoolean();
+    public boolean isNotCodeGeneration() {
+        //TODO: Discuss logic and name change from isNotCodeGeneration to isCodeGeneration to avoid confusion, setting default value to be code-generation
+        if (notCodeGeneration == null) {
+            notCodeGeneration = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_NOTCODEGENERATION));
+
+            if (st != null) {
+                notCodeGeneration = st.getBoolean();
             }
         }
-        return isInheritProperty;
+        return notCodeGeneration;
     }
 
     /**
+     * Checks whether this property will be inherited to child objects, as described in SWBOntology.
+     *
+     * @return true if this property will be inherited to child objects.
+     */
+    public boolean isInheritProperty() {
+        if (inheritProperty == null) {
+            inheritProperty = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_INHERITPROPERTY));
+
+            if (st != null) {
+                inheritProperty = st.getBoolean();
+            }
+        }
+        return inheritProperty;
+    }
+
+    /**
+     * @return
+     * @deprecated for naming conventions. Use {@link #isInverseHierarchicalRelation()}.
      * Si esta propiedad se utiliza para definir la relacio hijo-padre en el arbol de navegacion.
-     * 
-     * @return true, if is inverse heraquical relation
-     * @return
      */
-    public boolean isInverseHeraquicalRelation()
-    {
-        boolean ret = false;
-        SemanticProperty inv = getInverse();
-        if (inv != null && inv.isHeraquicalRelation())
-        {
-            ret = true;
-        }
-        return ret;
+    @Deprecated
+    public boolean isInverseHeraquicalRelation() {
+        return isInverseHierarchicalRelation();
     }
 
     /**
-     * Checks if is external invocation.
-     * 
-     * @return true, if is external invocation
+     * Checks whether this inverse property is used to define a parent-child relation for tree-like rendering
+     * of objects.
+     *
+     * @return true if this inverse property is a hierarchical relation property.
      */
-    public boolean isExternalInvocation()
-    {
-        if (isExternalInvocation == null)
-        {
-            isExternalInvocation = false;
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_EXTERNALINVOCATION));
-            if (st != null)
-            {
-                isExternalInvocation = st.getBoolean();
+    public boolean isInverseHierarchicalRelation() {
+        SemanticProperty inv = getInverse();
+        return inv != null && inv.isHierachicalRelation();
+    }
+
+    /**
+     * Checks whether this property is managed using an external invocation (remote model).
+     *
+     * @return true if this property is managed using an external invocation.
+     */
+    public boolean isExternalInvocation() {
+        if (externalInvocation == null) {
+            externalInvocation = false;
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_EXTERNALINVOCATION));
+
+            if (st != null) {
+                externalInvocation = st.getBoolean();
             }
         }
-        return isExternalInvocation;
+        return externalInvocation;
     }
 
     /**
-     * Gets the display property.
-     * 
-     * @return the display property
+     * Gets the display property associated to this property.
+     *
+     * @return the display property.
      */
-    public SemanticObject getDisplayProperty()
-    {
-        if (!dispProperty)
-        {
-            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_DISPLAYPROPERTY));
-            if (st != null)
-            {
+    public SemanticObject getDisplayProperty() {
+        if (!dispProperty) {
+            Statement st = m_prop.getProperty(SWBPlatform.getSemanticMgr()
+                    .getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_PROP_DISPLAYPROPERTY));
+
+            if (st != null) {
                 displayProperty = SemanticObject.createSemanticObject(st.getResource());
                 dispProperty = true;
             }
@@ -636,171 +666,121 @@ public class SemanticProperty
     }
 
     /**
-     * Gets the display name.
-     * 
-     * @return the display name
+     * Gets the display name for this property, ignoring language.
+     *
+     * @return the display name of the property.
      */
-    public String getDisplayName()
-    {
+    public String getDisplayName() {
         return getDisplayName(null);
     }
 
     /**
-     * Gets the display name.
-     * 
-     * @param lang the lang
-     * @return the display name
+     * Gets the display name for this property matching <code>lang</code>. This method tries to get the name from the
+     * associated DisplayProperty, falling back to returning property label or property name.
+     * <p>
+     * If <code>lang</code> is not contained as part of the literal value of the property, Spanish "es" is used as default.
+     *
+     * @return the display name of the property.
      */
-    public String getDisplayName(String lang)
-    {
+    public String getDisplayName(String lang) {
+        String defLang = null != lang ? lang : "es";
         String ret = null;
+
         SemanticObject obj = getDisplayProperty();
-        if (obj != null)
-        {
-            if (lang != null)
-            {
-                ret = obj.getProperty(obj.getModel().getSemanticProperty(SemanticVocabulary.RDFS_LABEL), null, lang);
-            }
-            else
-            {
-                ret = obj.getProperty(obj.getModel().getSemanticProperty(SemanticVocabulary.RDFS_LABEL), null, "es");
-            }
-            if (ret == null)
-            {
+        if (obj != null) {
+            ret = obj.getProperty(obj.getModel().getSemanticProperty(SemanticVocabulary.RDFS_LABEL), null, defLang);
+
+            if (ret == null) {
                 ret = obj.getProperty(obj.getModel().getSemanticProperty(SemanticVocabulary.RDFS_LABEL));
             }
         }
-        if (ret == null)
-        {
+
+        if (ret == null) {
             ret = getLabel(lang);
         }
-        if (ret == null)
-        {
+
+        if (ret == null) {
             ret = getLabel();
         }
-        if (ret == null)
-        {
+
+        if (ret == null) {
             ret = getName();
         }
-        //System.out.println("Prop:"+obj+" "+ret);
+
         return ret;
     }
-//    
-//    public String getViewGroup()
-//    {
-//        String ret=null;
-//        Statement st=m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_ANNOT_PROPGROUP));
-//        if(st!=null)
-//        {
-//            return st.getString();
-//        }
-//        return ret;
-//    }       
-//    
-//    public int getSortIndex()
-//    {
-//        int ret=99999999;
-//        Statement st=m_prop.getProperty(SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().getProperty(SemanticVocabulary.SWB_ANNOT_PROPINDEX));
-//        if(st!=null)
-//        {
-//            return st.getInt();
-//        }
-//        return ret;
-//    }    
 
-    /* (non-Javadoc)
- * @see java.lang.Object#toString()
- */
-@Override
-    public String toString()
-    {
+    @Override
+    public String toString() {
         return m_prop.toString();
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#hashCode()
-     */
     @Override
-    public int hashCode()
-    {
+    public int hashCode() {
         return m_prop.hashCode();
     }
 
-    /* (non-Javadoc)
-     * @see java.lang.Object#equals(java.lang.Object)
-     */
     @Override
-    public boolean equals(Object obj)
-    {
-        if(obj==null)return false;
+    public boolean equals(Object obj) {
+        if (obj == null) return false;
         return hashCode() == obj.hashCode();
     }
 
     /**
-     * Gets the domain class.
-     * 
+     * Gets the domain class for this property.
+     *
      * @return the domain class
      */
-    public SemanticClass getDomainClass()
-    {
-        if (hasInverse())
-        {
+    public SemanticClass getDomainClass() {
+        if (hasInverse()) {
             return m_inverse.getRangeClass();
         }
+
         SemanticClass ret = null;
         Statement stm = m_prop.getProperty(m_prop.getModel().getProperty(SemanticVocabulary.RDFS_DOMAIN));
-        if (stm != null)
-        {
+        if (stm != null) {
             String domclsid = stm.getResource().getURI();
-            if (domclsid != null)
-            {
+            if (domclsid != null) {
                 ret = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticClass(domclsid);
                 //TODO: eliminar esto cuando se separe el vocabulario por ontologia
-                if (ret == null)
-                {
+                if (ret == null) {
                     ret = new SemanticClass(((OntModel) stm.getResource().getModel()).getOntClass(domclsid));
                     SWBPlatform.getSemanticMgr().getVocabulary().registerClass(ret);
                 }
             }
-
         }
         return ret;
     }
 
     /**
-     * Gets the range class.
-     * 
-     * @return the range class
+     * Gets class for the range of this property.
+     *
+     * @return the range class.
      */
-    public SemanticClass getRangeClass()
-    {
-        if (hasInverse())
-        {
+    public SemanticClass getRangeClass() {
+        SemanticClass ret = null;
+
+        if (hasInverse()) {
             return m_inverse.getDomainClass();
         }
-        SemanticClass ret = null;
+
         Statement stm = m_prop.getProperty(m_prop.getModel().getProperty(SemanticVocabulary.RDFS_RANGE));
-        if (stm != null)
-        {
+        if (stm != null) {
             ret = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticClass(stm.getResource().getURI());
         }
         return ret;
     }
 
     /**
-     * Gets the range.
-     * 
-     * @return the range
+     * Gets the range value of this property as a {@link Resource}.
+     *
+     * @return the range of this property.
      */
-    public Resource getRange()
-    {
-        if (!rangeCheck)
-        {
+    public Resource getRange() {
+        if (!rangeCheck) {
             Statement stm = m_prop.getProperty(m_prop.getModel().getProperty(SemanticVocabulary.RDFS_RANGE));
-            if (stm != null)
-            {
+            if (stm != null) {
                 range = stm.getResource();
-
             }
             rangeCheck = true;
         }
@@ -808,24 +788,21 @@ public class SemanticProperty
     }
 
     /**
-     * Gets the cardinality of the property
-     * @return the cardinality, 0 for multiple and 1 for single
+     * Gets the cardinality of the property. Cardinality is checked against properties
+     * named with 'has' prefix in SWBOntology instead of checking OWL cardinality.
+     *
+     * @return the cardinality, 0 for one to manny and 1 for one to one.
      */
-    public int getCardinality()
-    {
-        if (!cardinalityCheck)
-        {
+    public int getCardinality() {
+        if (!cardinalityCheck) {
             String n = getPropertyCodeName();
-            if (n == null)
-            {
+            if (n == null) {
                 n = getName();
             }
-            if (n.startsWith("has"))
-            {
+
+            if (n.startsWith("has")) {
                 cardinality = 0;
-            }
-            else
-            {
+            } else {
                 cardinality = 1;
             }
             cardinalityCheck = true;
@@ -834,72 +811,65 @@ public class SemanticProperty
     }
 
     /**
-     * Checks if is object property.
-     * 
-     * @return true, if is object property
+     * Checks if is this property is an object property. An object property uses an object class as range.
+     *
+     * @return true, if is an object property.
      */
-    public boolean isObjectProperty()
-    {
-        if (isObjectProperty == null)
-        {
-            isObjectProperty = false;
+    public boolean isObjectProperty() {
+        if (objectProperty == null) {
+            objectProperty = false;
             Statement stm = m_prop.getProperty(m_prop.getModel().getProperty(SemanticVocabulary.RDF_TYPE));
-            if (stm != null)
-            {
-                isObjectProperty = SemanticVocabulary.OWL_OBJECTPROPERTY.equals(stm.getResource().getURI());
-                if (!isObjectProperty)
-                {
-                    OntClass ontClassDataType = SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().createClass(SemanticVocabulary.OWL_OBJECTPROPERTY);
-                    if (ontClassDataType.hasSubClass(stm.getResource()))
-                    {
-                        isObjectProperty = Boolean.TRUE;
+
+            if (stm != null) {
+                objectProperty = SemanticVocabulary.OWL_OBJECTPROPERTY.equals(stm.getResource().getURI());
+                if (!objectProperty) {
+                    OntClass ontClassDataType = SWBPlatform.getSemanticMgr()
+                            .getSchema().getRDFOntModel().createClass(SemanticVocabulary.OWL_OBJECTPROPERTY);
+
+                    if (ontClassDataType.hasSubClass(stm.getResource())) {
+                        objectProperty = Boolean.TRUE;
                     }
                 }
             }
         }
-        return isObjectProperty;
+        return objectProperty;
     }
 
     /**
-     * Checks if is data type property.
-     * 
-     * @return true, if is data type property
+     * Checks if is this property is a data type property. A data-type property uses a type literal as range.
+     *
+     * @return true, if is a data type property.
      */
-    public boolean isDataTypeProperty()
-    {
-        if (isDataTypeProperty == null)
-        {
-            isDataTypeProperty = false;
+    public boolean isDataTypeProperty() {
+        if (dataTypeProperty == null) {
+            dataTypeProperty = false;
+
             Statement stm = m_prop.getProperty(m_prop.getModel().getProperty(SemanticVocabulary.RDF_TYPE));
-            if (stm != null)
-            {
-                isDataTypeProperty = SemanticVocabulary.OWL_DATATYPEPROPERTY.equals(stm.getResource().getURI());                
-                if (!isDataTypeProperty)
-                {
-                    OntClass ontClassDataType = SWBPlatform.getSemanticMgr().getSchema().getRDFOntModel().createClass(SemanticVocabulary.OWL_DATATYPEPROPERTY);
-                    if (ontClassDataType.hasSubClass(stm.getResource()))
-                    {
-                        isDataTypeProperty = Boolean.TRUE;
+            if (stm != null) {
+                dataTypeProperty = SemanticVocabulary.OWL_DATATYPEPROPERTY.equals(stm.getResource().getURI());
+                if (!dataTypeProperty) {
+                    OntClass ontClassDataType = SWBPlatform.getSemanticMgr()
+                            .getSchema().getRDFOntModel().createClass(SemanticVocabulary.OWL_DATATYPEPROPERTY);
+
+                    if (ontClassDataType.hasSubClass(stm.getResource())) {
+                        dataTypeProperty = Boolean.TRUE;
                     }
                 }
             }
         }
-        return isDataTypeProperty;
+        return dataTypeProperty;
     }
 
     /**
-     * Esta propiedad es la inversa de otra (no genera statements).
-     * 
-     * @return true, if successful
-     * @return
+     * Checks if is this property has an inverse property.
+     *
+     * @return true, if has at least one inverse property.
+     * @see OntProperty#hasInverse()
      */
-    public boolean hasInverse()
-    {
-        if (hasInverse == null)
-        {
+    public boolean hasInverse() {
+        if (hasInverse == null) {
             hasInverse = false;
-            if (m_prop instanceof OntProperty)
-            {
+            if (m_prop instanceof OntProperty) {
                 hasInverse = ((OntProperty) m_prop).hasInverse();
             }
         }
@@ -907,286 +877,205 @@ public class SemanticProperty
     }
 
     /**
-     * Esta propiedad es normal pero tiene una inversa.
-     * 
-     * @return true, if is inverse of
-     * @return
+     * Checks whether this property is an inverse property.
+     *
+     * @return true if this property is an inverse property
      */
-    public boolean isInverseOf()
-    {
-        return isInverse;
+    public boolean isInverseOf() {
+        return inverse;
     }
 
     /**
-     * Gets the inverse.
-     * 
-     * @return the inverse
+     * Gets the inverse property associated with this property.
+     *
+     * @return the inverse property.
      */
-    public SemanticProperty getInverse()
-    {
+    public SemanticProperty getInverse() {
         return m_inverse;
     }
 
     /**
-     * Checks if is boolean.
-     * 
-     * @return true, if is boolean
+     * Checks whether this property is a boolean property (range is #XMLS_BOOLEAN).
+     *
+     * @return true, if this property is a boolean property.
      */
-    public boolean isBoolean()
-    {
-        boolean ret = false;
+    public boolean isBoolean() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_BOOLEAN))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_BOOLEAN));
     }
 
     /**
-     * Checks if is int.
-     * 
-     * @return true, if is int
+     * Checks whether this property is an integer property (range is #XMLS_INTEGER or #XMLS_INT).
+     *
+     * @return true, if this property is an integer property.
      */
-    public boolean isInt()
-    {
-        boolean ret = false;
+    public boolean isInt() {
         Resource res = getRange();
-        if (res != null && (res.getURI().equals(SemanticVocabulary.XMLS_INTEGER)||res.getURI().equals(SemanticVocabulary.XMLS_INT)))
-        {
-            ret = true;
-        }
-        return ret;
+        return res != null &&
+                (res.getURI().equals(SemanticVocabulary.XMLS_INTEGER) || res.getURI().equals(SemanticVocabulary.XMLS_INT));
     }
 
     /**
-     * Checks if is binary.
-     * 
-     * @return true, if is binary
+     * Checks whether this property is a base64 encoded string (range is #XMLS_BASE64BINARY).
+     *
+     * @return true, if this property is a base64 encoded string.
      */
-    public boolean isBinary()
-    {
-        boolean ret = false;
+    public boolean isBinary() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_BASE64BINARY))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_BASE64BINARY));
     }
 
     /**
-     * Checks if is long.
-     * 
-     * @return true, if is long
+     * Checks whether this property is a long property (range is #XMLS_LONG).
+     *
+     * @return true, if this property is a long property.
      */
-    public boolean isLong()
-    {
-        boolean ret = false;
+    public boolean isLong() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_LONG))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_LONG));
     }
 
     /**
-     * Checks if is date.
-     * 
-     * @return true, if is date
+     * Checks whether this property is a date property (range is #XMLS_DATE).
+     *
+     * @return true, if this property is a date property.
      */
-    public boolean isDate()
-    {
-        boolean ret = false;
+    public boolean isDate() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_DATE))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_DATE));
     }
 
     /**
-     * Checks if is date time.
-     * 
-     * @return true, if is date time
+     * Checks whether this property is a datetime property (range is #XMLS_DATETIME).
+     *
+     * @return true, if this property is a datetime property.
      */
-    public boolean isDateTime()
-    {
-        boolean ret = false;
+    public boolean isDateTime() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_DATETIME))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_DATETIME));
     }
 
     /**
-     * Checks if is string.
-     * 
-     * @return true, if is string
+     * Checks whether this property is a string property (range is #XMLS_STRING).
+     *
+     * @return true, if this property is a String property.
      */
-    public boolean isString()
-    {
-        boolean ret = false;
+    public boolean isString() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_STRING))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_STRING));
     }
 
     /**
-     * Checks if is float.
-     * 
-     * @return true, if is float
+     * Checks whether this property is a float property (range is #XMLS_FLOAT).
+     *
+     * @return true, if this property is a float property.
      */
-    public boolean isFloat()
-    {
-        boolean ret = false;
+    public boolean isFloat() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_FLOAT))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_FLOAT));
     }
 
     /**
-     * Checks if is xML.
-     * 
-     * @return true, if is xML
+     * Checks whether this property is an XML String property (range is #RDF_XMLLITERAL).
+     *
+     * @return true, if this property is an XML String property.
      */
-    public boolean isXML()
-    {
-        boolean ret = false;
+    public boolean isXML() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.RDF_XMLLITERAL))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.RDF_XMLLITERAL));
     }
 
     /**
-     * Checks if is double.
-     * 
-     * @return true, if is double
+     * Checks whether this property is a double property (range is #XMLS_DOUBLE).
+     *
+     * @return true, if this property is a double property.
      */
-    public boolean isDouble()
-    {
-        boolean ret = false;
+    public boolean isDouble() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_DOUBLE))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_DOUBLE));
     }
 
     /**
-     * Checks if is byte.
-     * 
-     * @return true, if is byte
+     * Checks whether this property is a binary string property (range is #XMLS_BYTE).
+     *
+     * @return true, if this property is a binary string property.
      */
-    public boolean isByte()
-    {
-        boolean ret = false;
+    public boolean isByte() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_BYTE))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_BYTE));
     }
 
     /**
-     * Checks if is short.
-     * 
-     * @return true, if is short
+     * Checks whether this property is a short property (range is #XMLS_SHORT).
+     *
+     * @return true, if this property is a short property.
      */
-    public boolean isShort()
-    {
-        boolean ret = false;
+    public boolean isShort() {
         Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_SHORT))
-        {
-            ret = true;
-        }
-        return ret;
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_SHORT));
     }
-    
-    /**
-     * Checks if is short.
-     * 
-     * @return true, if is short
-     */
-    public boolean isDecimal()
-    {
-        boolean ret = false;
-        Resource res = getRange();
-        if (res != null && res.getURI().equals(SemanticVocabulary.XMLS_DECIMAL))
-        {
-            ret = true;
-        }
-        return ret;
-    }    
 
     /**
-     * Checks if is numeric.
-     * 
-     * @return true, if is numeric
+     * Checks whether this property is a decimal property (range is #XMLS_DECIMAL).
+     *
+     * @return true, if this property is a decimal property.
      */
-    public boolean isNumeric()
-    {
+    public boolean isDecimal() {
+        Resource res = getRange();
+        return (res != null && res.getURI().equals(SemanticVocabulary.XMLS_DECIMAL));
+    }
+
+    /**
+     * Checks whether this property is a numeric property (property is int, long, byte, double, float or short).
+     *
+     * @return true, if this property is a numeric property.
+     */
+    public boolean isNumeric() {
         return isInt() || isLong() || isByte() || isDouble() || isFloat() || isShort();
     }
-    
+
     /**
-     * Gets restrictions from the property an the class.
+     * Gets an iterator to the restrictions associated to this property on a specific SemanticClass.
      *
-     * @param cls the cls
-     * @return iterator of SemanticRestrictions
+     * @param cls the {@link SemanticClass} to check property restrictions.
+     * @return Iterator of SemanticRestrictions
      */
-    public Iterator<SemanticRestriction>listRestrictions(SemanticClass cls)
-    {
-        if(restrictions==null)loadRestrictions();
-        Iterator it=new ArrayList().iterator();
-        ArrayList list=restrictions.get(cls.getURI());
-        if(list!=null)it=list.iterator();
-        return it;
+    public Iterator<SemanticRestriction> listRestrictions(SemanticClass cls) {
+        if (restrictions == null) {
+            loadRestrictions();
+        }
+
+        ArrayList<SemanticRestriction> list = restrictions.get(cls.getURI());
+        if (list != null) {
+            return list.iterator();
+        }
+        return new ArrayList<SemanticRestriction>().iterator();
     }
 
     /**
-     * Gets restriction from the property an the class or null if don´t have.
-     * 
-     * @param cls the cls
-     * @return SemanticRestrictions
+     * Gets a {@link SemanticRestriction} for the property on a specific {@link SemanticClass}.
+     *
+     * @param cls the {@link SemanticClass} to get property restriction.
+     * @return SemanticRestriction of property on class or null if no restriction exists.
      */
-    public SemanticRestriction getValuesFromRestriction(SemanticClass cls)
-    {
-        if(restrictions==null)loadRestrictions();
-        int level=-1;
+    public SemanticRestriction getValuesFromRestriction(SemanticClass cls) {
+        if (restrictions == null) {
+            loadRestrictions();
+        }
+
+        int level = -1;
         SemanticRestriction rcls = frestrictions.get(cls.getURI());
-        if (rcls == null && !frestrictions.containsKey(cls.getURI()))
-        {
-            ArrayList list = restrictions.get(cls.getURI());
-            if (list != null)
-            {
-                Iterator<SemanticRestriction> it = list.iterator();
-                while (it.hasNext())
-                {
-                    SemanticRestriction restriction = it.next();
-                    if(restriction.isAllValuesFromRestriction() || restriction.isSomeValuesFromRestriction() || restriction.isHasValueRestriction())
-                    {
-                        int l=restriction.getSubClassLevel(cls);
-                        if(level<0 || level>l)
-                        {
-                            rcls=restriction;
-                            level=l;
+        if (rcls == null && !frestrictions.containsKey(cls.getURI())) {
+            ArrayList<SemanticRestriction> list = restrictions.get(cls.getURI());
+            if (list != null) {
+                for (SemanticRestriction restriction : list) {
+                    if (restriction.isAllValuesFromRestriction() || restriction.isSomeValuesFromRestriction() ||
+                            restriction.isHasValueRestriction()) {
+
+                        int l = restriction.getSubClassLevel(cls);
+                        if (level < 0 || level > l) {
+                            rcls = restriction;
+                            level = l;
                         }
                     }
                 }
@@ -1197,44 +1086,38 @@ public class SemanticProperty
     }
 
     /**
-     * Register observer.
+     * Registers a Property observer.
      *
-     * @param obs the obs
+     * @param observer the Observer
      */
-    public void registerObserver(SemanticObserver obs) {
-        m_observers.add(obs);
+    public void registerObserver(SemanticObserver observer) {
+        observers.add(observer);
     }
 
     /**
-     * Removes the observer.
+     * Removes a Property observer.
      *
-     * @param obs the obs
+     * @param observer the Observer
      */
-    public void removeObserver(SemanticObserver obs) {
-        m_observers.remove(obs);
+    public void removeObserver(SemanticObserver observer) {
+        observers.remove(observer);
     }
 
     /**
-     * Notify change.
+     * Notifies a change in the Property to registered observers.
      *
-     * @param obj the obj
-     * @param prop the prop
-     * @param lang the lang
-     * @param action the action
+     * @param obj    the changed {@link SemanticObject}
+     * @param prop   the changed {@link SemanticProperty}
+     * @param lang   the language
+     * @param action the action that triggered the change
      */
-    public void notifyChange(SemanticObject obj, Object prop, String lang, String action)
-    {
-        //log.trace("notifyChange: obj:" + obj + " prop:" + prop + " " + action);
-        Iterator it = m_observers.iterator();
-        while (it.hasNext()) {
-            SemanticObserver obs = (SemanticObserver) it.next();
+    public void notifyChange(SemanticObject obj, Object prop, String lang, String action) {
+        for (SemanticObserver observer : observers) {
             try {
-                obs.notify(obj, prop, lang, action);
+                observer.notify(obj, prop, lang, action);
             } catch (Exception e) {
-                log.error(e);
+                LOG.error(e);
             }
         }
     }
-
-
 }

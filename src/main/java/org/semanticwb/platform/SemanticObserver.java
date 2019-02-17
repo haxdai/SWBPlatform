@@ -40,5 +40,5 @@ public interface SemanticObserver {
      * @param lang   the lang
      * @param action the action
      */
-    public void notify(SemanticObject obj, Object prop, String lang, String action);
+     void notify(SemanticObject obj, Object prop, String lang, String action);
 }

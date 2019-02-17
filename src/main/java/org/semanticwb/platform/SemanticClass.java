@@ -49,7 +49,7 @@ import static org.semanticwb.SWBUtils.TEXT.capitalize;
 public class SemanticClass {
 
     /**
-     * The log.
+     * The LOG.
      */
     private static Logger log = SWBUtils.getLogger(SemanticClass.class);
 

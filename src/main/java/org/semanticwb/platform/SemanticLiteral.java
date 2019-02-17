@@ -40,7 +40,7 @@ import java.sql.Timestamp;
 public class SemanticLiteral {
 
     /**
-     * The log.
+     * The LOG.
      */
     private static Logger log = SWBUtils.getLogger(SemanticLiteral.class);
 

@@ -120,8 +120,8 @@ public class SemanticModel {
 
 
     /**
-     * Checks if {@link SemanticModel} will log user changes.
-     * @return whether {@link SemanticModel} will log user changes.
+     * Checks if {@link SemanticModel} will LOG user changes.
+     * @return whether {@link SemanticModel} will LOG user changes.
      */
     public boolean isTraceable() {
         return traceChanges;

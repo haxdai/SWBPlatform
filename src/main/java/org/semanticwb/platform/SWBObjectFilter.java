@@ -23,90 +23,75 @@
 package org.semanticwb.platform;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.StringTokenizer;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class SWBObjectFilter.
- * 
+ * Utility class used to filter properties of a {@link SemanticObject} primarily for display purposes.
+ *
  * @author javier.solis
  */
-public class SWBObjectFilter
-{
-    
+public class SWBObjectFilter {
+
     /**
-     * Filter.
-     * 
-     * @param objects the objects
-     * @param filter the filter
-     * @return the iterator
+     * Filter an iterator of {@link SemanticObject} using a matching property filter String.
+     *
+     * @param objects Iterator of {@link SemanticObject} to filter.
+     * @param filter  String property filter.
+     * @return Iterator of filtered {@link SemanticObject}.
      */
-    public static Iterator<SemanticObject> filter(Iterator<SemanticObject>objects, String filter)
-    {
-        if(filter!=null)
-        {
-            ArrayList<SemanticObject> arr=new ArrayList();
-            while(objects.hasNext())
-            {
-                SemanticObject obj=objects.next();
-                if(filter(obj, filter))arr.add(obj);
+    public static Iterator<SemanticObject> filter(Iterator<SemanticObject> objects, String filter) {
+        if (filter != null) {
+            ArrayList<SemanticObject> arr = new ArrayList<>();
+            while (objects.hasNext()) {
+                SemanticObject obj = objects.next();
+                if (filter(obj, filter)) {
+                    arr.add(obj);
+                }
             }
             return arr.iterator();
-        }else
-        {
+        } else {
             return objects;
         }
     }
 
-
     /**
-     * Filter.
-     * 
-     * @param obj SemanticObject a filtrar
-     * @param filter String con filtro
-     * @return boolean si clumple o no con el filtro
+     * Filters properties on a {@link SemanticObject} using a filter string.
+     * Filter rules are separated by character ",", ";", "|", or "&".
+     * Valid comparisons are equality ("==" , "=") or inequality ("!=", "<>").
+     *
+     * @param obj       {@link SemanticObject} to filter properties from
+     * @param filter    Filter string
+     * @return boolean  when filter rule is evaluated to true
      */
-    public static boolean filter(SemanticObject obj, String filter)
-    {
-        if(filter==null)return true;
-        boolean ret=false;
-        StringTokenizer st=new StringTokenizer(filter,",;|&");
-        while(st.hasMoreTokens())
-        {
-            String txt=st.nextToken();
-            //System.out.println("txt:"+txt);
-            StringTokenizer st2=new StringTokenizer(txt,"=><!");
-            while(st2.hasMoreTokens())
-            {
-                String key=st2.nextToken();
-                //System.out.println("key:"+key);
-                if(st2.hasMoreTokens())
-                {
-                    String value=st2.nextToken();
-                    String sep=txt.substring(key.length(),txt.length()-value.length());
-                    //System.out.println("sep:"+sep);
-                    //System.out.println("value:"+value);
-                    SemanticClass cls=obj.getSemanticClass();
-                    if(cls.hasProperty(key))
-                    {
-                        String val=obj.getProperty(cls.getProperty(key));
-                        if((sep.equals("=") || sep.equals("==")) && value.equals(val))
-                        {
-                            ret=true;
+    public static boolean filter(SemanticObject obj, String filter) {
+        if (filter == null) {
+            return true;
+        }
+
+        boolean ret = false;
+        StringTokenizer st = new StringTokenizer(filter, ",;|&");
+        while (st.hasMoreTokens()) {
+            String txt = st.nextToken();
+            StringTokenizer st2 = new StringTokenizer(txt, "=><!");
+            while (st2.hasMoreTokens()) {
+                String key = st2.nextToken();
+                if (st2.hasMoreTokens()) {
+                    String value = st2.nextToken();
+                    String sep = txt.substring(key.length(), txt.length() - value.length());
+                    SemanticClass cls = obj.getSemanticClass();
+                    if (cls.hasProperty(key)) {
+                        String val = obj.getProperty(cls.getProperty(key));
+                        if ((sep.equals("=") || sep.equals("==")) && value.equals(val)) {
+                            ret = true;
                         }
-                        if((sep.equals("!=") || sep.equals("<>")) && !value.equals(val))
-                        {
-                            ret=true;
+                        if ((sep.equals("!=") || sep.equals("<>")) && !value.equals(val)) {
+                            ret = true;
                         }
-                        //System.out.println("val:"+val+" "+"sep:"+sep+" value:"+value);
                     }
                 }
             }
         }
         return ret;
     }
-
-
 }
