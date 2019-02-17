@@ -453,7 +453,7 @@ public class SWBQueryExecution implements QueryExecution
 //                        try
 //                        {
 //                            if(sext!=null)ext=SWBUtils.IO.readInputStream(sext);
-//                        }catch(Exception e){log.error(e);}
+//                        }catch(Exception e){LOG.error(e);}
                         Node n = null;
                         Object obj=rs.getObject(name);
                         if(obj instanceof Integer)
