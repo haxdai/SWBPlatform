@@ -194,7 +194,7 @@ public class SemanticProperty {
      */
     public SemanticProperty(Property prop) {
         this.m_prop = prop;
-        if (m_prop instanceof OntProperty && hasInverse) {
+        if (m_prop instanceof OntProperty && hasInverse()) {
             m_inverse = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(((OntProperty) m_prop).getInverse());
             m_inverse.inverse = true;
             m_inverse.m_inverse = this;
