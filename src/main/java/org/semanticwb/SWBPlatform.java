@@ -194,7 +194,7 @@ public class SWBPlatform {
      *
      * @return the sWB platform
      */
-     public static synchronized SWBPlatform createInstance() {
+    public static synchronized SWBPlatform createInstance() {
         if (instance == null) {
             instance = new SWBPlatform();
         }
@@ -238,7 +238,7 @@ public class SWBPlatform {
      *
      * @param props the new properties
      */
-    public static void setProperties(Properties props) {
+    public void setProperties(Properties props) {
         SWBPlatform.props = props;
     }
 
@@ -247,7 +247,7 @@ public class SWBPlatform {
      *
      * @param props the new properties
      */
-    public static void setSecurityProperties(Properties props) {
+    public void setSecurityProperties(Properties props) {
         SWBPlatform.secProps = props;
         secValues = new SWBSecurityInstanceValues(props);
     }
@@ -329,7 +329,7 @@ public class SWBPlatform {
      *
      * @param contextPath the new context path
      */
-    public static void setContextPath(String contextPath) {
+    public void setContextPath(String contextPath) {
         SWBPlatform.contextPath = contextPath;
     }
 
@@ -348,7 +348,7 @@ public class SWBPlatform {
      *
      * @param workPath the new platform work path
      */
-    public static void setPlatformWorkPath(String workPath) {
+    public void setPlatformWorkPath(String workPath) {
         SWBPlatform.workPath = workPath;
     }
 
@@ -366,7 +366,7 @@ public class SWBPlatform {
      *
      * @param statementsCache the new statements cache
      */
-    public static void setStatementsCache(boolean statementsCache) {
+    public void setStatementsCache(boolean statementsCache) {
         SWBPlatform.statementsCache = statementsCache;
     }
 
@@ -384,7 +384,7 @@ public class SWBPlatform {
      *
      * @param persistenceType the new persistence type
      */
-    public static void setPersistenceType(String persistenceType) {
+    public void setPersistenceType(String persistenceType) {
         SWBPlatform.persistenceType = persistenceType.toLowerCase();
     }
 
@@ -463,7 +463,7 @@ public class SWBPlatform {
      *
      * @param adminDev the new admin dev
      */
-    public static void setAdminDev(boolean adminDev) {
+    public void setAdminDev(boolean adminDev) {
         SWBPlatform.adminDev = adminDev;
     }
 
@@ -481,7 +481,7 @@ public class SWBPlatform {
      *
      * @param adminFile the new admin file
      */
-    public static void setAdminFile(String adminFile) {
+    public void setAdminFile(String adminFile) {
         SWBPlatform.adminFile = adminFile;
     }
 
@@ -501,7 +501,7 @@ public class SWBPlatform {
      * @param ontEditFile the new ont edit file
      */
     //TODO: Move this method outside SWBPlatform
-    public static void setOntEditFile(String ontEditFile) {
+    public void setOntEditFile(String ontEditFile) {
         SWBPlatform.ontEditFile = ontEditFile;
     }
 
@@ -916,7 +916,7 @@ public class SWBPlatform {
         return msgcenter;
     }
 
-    protected static void setMessageCenter(SWBMessageCenter mcenter) {
+    protected void setMessageCenter(SWBMessageCenter mcenter) {
         msgcenter = mcenter;
     }
 }
