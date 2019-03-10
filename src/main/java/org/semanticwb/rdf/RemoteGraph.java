@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -18,7 +18,7 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ *  http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.rdf;
 
@@ -33,101 +33,99 @@ import com.hp.hpl.jena.query.QueryFactory;
 import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.util.iterator.ExtendedIterator;
 
-// TODO: Auto-generated Javadoc
 /**
  * The Class RemoteGraph.
- * 
+ *
  * @author javier.solis
  */
-public class RemoteGraph extends GraphBase implements Graph
-{
-    
-    /** The uri. */
+public class RemoteGraph extends GraphBase implements Graph {
+
+    /**
+     * The uri.
+     */
     private String uri;
-    
-    /** The query all. */
-    private boolean queryAll=false;
+
+    /**
+     * The query all.
+     */
+    private boolean queryAll = false;
 
     /**
      * Cronstruct a Remote Graph.
-     * 
+     *
      * @param uri for the Remote Sparql endpoint
      */
-    public RemoteGraph(String uri)
-    {
-        this(uri,false);
+    public RemoteGraph(String uri) {
+        this(uri, false);
     }
 
     /**
      * Cronstruct a Remote Graph.
-     * 
-     * @param uri for the Remote Sparql endpoint
+     *
+     * @param uri      for the Remote Sparql endpoint
      * @param queryAll support for query all triples (default false)
      */
-    public RemoteGraph(String uri, boolean queryAll)
-    {
-        this.uri=uri;
-        this.queryAll=queryAll;
+    public RemoteGraph(String uri, boolean queryAll) {
+        this.uri = uri;
+        this.queryAll = queryAll;
     }
 
     /**
      * Gets the node string.
-     * 
+     *
      * @param n the n
      * @return the node string
      */
-    private String getNodeString(Node n)
-    {
-        String ret=null;
-        if(n.isURI())ret="<"+n.getURI()+">";
-        else ret=n.toString();
-        //System.out.println("node:"+ret);
-        return ret;
+    private String getNodeString(Node n) {
+        if (n.isURI()) {
+            return "<" + n.getURI() + ">";
+        } else {
+            return n.toString();
+        }
     }
 
 
     /**
      * Answer an iterator over all the triples held in this graph's non-reified triple store
      * that match <code>m</code>.
-     * 
+     *
      * @param m the m
      * @return the extended iterator
      */
     @Override
-    protected ExtendedIterator graphBaseFind(TripleMatch m)
-    {
-        String sub="$sub";
-        String pre="$pre";
-        String obj="$obj";
+    protected ExtendedIterator graphBaseFind(TripleMatch m) {
+        String sub = "$sub";
+        String pre = "$pre";
+        String obj = "$obj";
 
-        if(m.getMatchSubject()!=null)sub=getNodeString(m.getMatchSubject());
-        if(m.getMatchPredicate()!=null)pre=getNodeString(m.getMatchPredicate());
-        if(m.getMatchObject()!=null)obj=getNodeString(m.getMatchObject());
+        if (m.getMatchSubject() != null) {
+            sub = getNodeString(m.getMatchSubject());
+        }
 
-        System.out.println("query:"+sub+" "+pre+" "+obj);
-        //new Exception().printStackTrace();
+        if (m.getMatchPredicate() != null) {
+            pre = getNodeString(m.getMatchPredicate());
+        }
 
-       	String queryString =
-            "CONSTRUCT { "+sub+" "+pre+" "+obj+" }" +
-    		"WHERE  " +
-            "{"+sub+" "+pre+" "+obj+"}";
-       	//String url = "http://dbpedia.org/sparql";
-        //String url = "http://www.sparql.org/books";
-       	Query query = QueryFactory.create(queryString);
-    	QueryExecution qexec = QueryExecutionFactory.sparqlService(uri,query);
-        Model model=qexec.execConstruct();
-        //model.write(System.out);
+        if (m.getMatchObject() != null) {
+            obj = getNodeString(m.getMatchObject());
+        }
+
+        String queryString =
+                "CONSTRUCT { " + sub + " " + pre + " " + obj + " }" +
+                        "WHERE  " +
+                        "{" + sub + " " + pre + " " + obj + "}";
+
+        Query query = QueryFactory.create(queryString);
+        QueryExecution qexec = QueryExecutionFactory.sparqlService(uri, query);
+        Model model = qexec.execConstruct();
         return model.getGraph().find(m);
-        //return null;
     }
 
     /**
      * Gets the uri.
-     * 
      * @return the uri
      */
     public String getUri() {
         return uri;
     }
-
 }
