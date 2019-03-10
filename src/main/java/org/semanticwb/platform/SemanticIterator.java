@@ -125,7 +125,7 @@ public class SemanticIterator<T extends SemanticObject> implements Iterator {
                                     .getSemanticObjectFromCache(((Statement) obj).getResource().getURI());
 
                             if (o != null) {
-                                o.removeInverseProperty((Statement) obj);
+                                o.removeInv((Statement) obj);
                             }
                         }
                     }
@@ -138,7 +138,7 @@ public class SemanticIterator<T extends SemanticObject> implements Iterator {
                                 .getSemanticObjectFromCache(((Statement) obj).getSubject().getURI());
 
                         if (o != null) {
-                            o.removeStatement((Statement) obj, true);
+                            o.remove((Statement) obj, true);
                         }
                     }
                     return aux;
