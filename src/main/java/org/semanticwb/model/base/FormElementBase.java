@@ -287,12 +287,17 @@ public class FormElementBase extends GenericObjectBase implements FormElement, G
             label = prop.getDisplayName(lang);
         }
 
-        String reqtxt = " &nbsp;";
+        String help = prop.getComment(lang);
+
+        String reqtxt = "";
         if (!mode.equals("filter") && required) {
-            reqtxt = " <em>*</em>";
+            reqtxt = "<em>*</em>";
         }
 
         ret = "<label for=\"" + propName + "\">" + label + reqtxt + "</label>";
+        if (null != help && !help.isEmpty()) {
+            ret += " <span class=\"fa fa-question-circle\" title=\"" + help + "\"></span>";
+        }
         return ret;
     }
 
