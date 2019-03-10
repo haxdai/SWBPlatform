@@ -62,7 +62,6 @@ public class SemanticMgr implements SWBInstanceObject {
      * <li>{@link #DAML_MEM_RDFS_INF} - In memory DAML model, RDFS inferencer</li>
      * <li>{@link #OWL_DL_MEM_RDFS_INF} - In memory OWL-DL model, RDFS inferencer</li>
      * <li>{@link #OWL_MEM_RDFS_INF} - In memory OWL model, RDFS inferencer</li>
-     *
      */
     public enum ModelSchema {
         OWL_MEM,
@@ -176,7 +175,7 @@ public class SemanticMgr implements SWBInstanceObject {
         OntModelSpec modelSpec = getModelSpec();
 
         //Create Schema
-        schema = new SemanticOntology("SWBSchema", ModelFactory.createOntologyModel(modelSpec));
+        schema = new SemanticOntology("SWBSquema", ModelFactory.createOntologyModel(modelSpec));
 
         //Create Ontology
         ontology = new SemanticOntology("SWBOntology",
@@ -212,7 +211,8 @@ public class SemanticMgr implements SWBInstanceObject {
      * Initializes {@link SemanticMgr}'s underlying Triple Store using default configuration.
      */
     public void initializeTripleStore() {
-        initializeTripleStore(false, true, null, false, "org.semanticwb.store.leveldb.SWBTSLevelDB");
+        initializeTripleStore(false, true, null,
+                false, "org.semanticwb.store.leveldb.SWBTSLevelDB");
     }
 
     /**
@@ -522,7 +522,6 @@ public class SemanticMgr implements SWBInstanceObject {
      * @deprecated for naming conventions. Use {@link #loadTripleStoreModels()}.
      * Loads RDF models from the underlying Triple Store into memory.
      */
-    @Deprecated
     public void loadDBModels() {
         loadTripleStoreModels();
     }
@@ -537,12 +536,11 @@ public class SemanticMgr implements SWBInstanceObject {
         Iterator<String> it = store.listModelNames();
         while (it.hasNext()) {
             String name = it.next();
-            log.trace("Loading model: " + name);
+            log.trace("LoadingModel:" + name);
             SemanticModel model = loadTripleStoreModel(name);
             model.setDataset(store.getDataset(name));
 
-            if ((semobjCache || semobjModelCache.contains(name)) &&
-                    !(model.getRDFModel().getGraph() instanceof GraphCached)) {
+            if ((semobjCache || semobjModelCache.contains(name)) && !(model.getRDFModel().getGraph() instanceof GraphCached)) {
                 //Se cambia cache de grafo por cache de semanticObjects
                 if (userRepCache || !name.endsWith("_usr")) {
                     log.event("Loading SemanticObject:" + name + " FullCache");
@@ -607,120 +605,98 @@ public class SemanticMgr implements SWBInstanceObject {
     }
 
     /**
-     * Loads SWBOntEdit N-TRIPLES model.
-     * @param model Model where SWBOntEdit is to be loaded.
-     * @param ntFile Path to N-TRIPLES file.
-     */
-    private void loadSWBOntEditModel(Model model, String ntFile) {
-        if (SWBPlatform.createInstance().isAdminDev()) {
-            NsIterator it = model.listNameSpaces();
-            if (!it.hasNext()) {
-                log.info("Importing SWBOntEdit...");
-                it.close();
-                try (FileInputStream in = new FileInputStream(ntFile)) {
-                    if (model instanceof ModelRDB) {
-                        ModelRDB m = (ModelRDB) model;
-                        try {
-                            m.begin();
-                            m.read(in, null, "N-TRIPLE");
-                        } catch (Exception e) {
-                            log.error(e);
-                        } finally {
-                            m.commit();
-                        }
-                    } else {
-                        model.read(in, null, "N-TRIPLE");
-                    }
-                } catch (Exception e) {
-                    log.warn(e.getMessage());
-                }
-            }
-        } else {
-            log.info("Loading SWBOntEdit in editing mode...");
-            OntModel omodel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, model);
-            try {
-                Model m = ModelFactory.createDefaultModel();
-                FileInputStream in = new FileInputStream(ntFile);
-                m.read(in, null, "N-TRIPLE");
-                omodel.addSubModel(m, true);
-                in.close();
-            } catch (Exception e) {
-                log.warn(e.getMessage());
-            }
-            model = omodel;
-        }
-    }
-
-    /**
-     * Loads SWBAdmin N-TRIPLES model.
-     * @param model Model where SWBAdmin is to be loaded.
-     * @param ntFile Path to N-TRIPLES file.
-     */
-    private void loadSWBAdminModel(Model model, String ntFile) {
-        if (!SWBPlatform.createInstance().isAdminDev()) {
-            List ns = SWBUtils.Collections.copyIterator(model.listNameSpaces());
-
-            if (ns.size() <= 1) { // verifica que no exista mas de un namespace
-                log.info("Importing SWBAdmin...");
-                try (FileInputStream in = new FileInputStream(ntFile)) {
-                    if (model.supportsTransactions()) {
-                        ModelRDB m = (ModelRDB) model;
-                        try {
-                            m.begin();
-                            m.read(in, null, "N-TRIPLE");
-                        } catch (Exception e) {
-                            log.error(e);
-                        } finally {
-                            m.commit();
-                        }
-                    } else {
-                        model.read(in, null, "N-TRIPLE");
-                    }
-                } catch (Exception e) {
-                    log.warn(e.getMessage());
-                }
-            }
-        } else {
-            log.info("Loading SWBAdmin model in editing mode...");
-
-            OntModel omodel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, model);
-            try {
-                Model m = ModelFactory.createDefaultModel();
-                FileInputStream in = new FileInputStream(ntFile);
-                m.read(in, null, "N-TRIPLE");
-                omodel.addSubModel(m, true);
-                in.close();
-            } catch (Exception e) {
-                log.warn(e.getMessage());
-            }
-            model = omodel;
-        }
-    }
-
-    /**
      * Loads or creates a {@link SemanticModel}. Checks if SWBAdmin or SWBOntEdit models are requested.
      *
      * @param name      model name
      * @param cached    whether to cache the {@link SemanticModel}
      * @return the SemanticModel
      */
+    //TODO: Problematic refactor
     private SemanticModel loadTripleStoreModel(String name, Model model, boolean cached) {
         if (cached) {
-            log.info("Loading cached Model: " + name);
+            log.info("Loading Model Cache:" + name);
             model = new ModelCom(new GraphCached((model.getGraph())));
         }
 
-        //TODO: Move loading of specific SWBPortal models (SWBAdmin, SWBOntEdit) outside SWBPlatform.
-        if (SWBAdmin.equals(name)) {
-            loadSWBAdminModel(model, SWBUtils.getApplicationPath() + SWBPlatform.createInstance().getAdminFile());
+        if (name.equals(SWBAdmin) && !SWBPlatform.createInstance().isAdminDev()) {
+            log.info("Loading SWBAdmin...");
+            OntModel omodel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, model);
+            try {
+                Model m = ModelFactory.createDefaultModel();
+                FileInputStream in = new FileInputStream(SWBUtils.getApplicationPath() + SWBPlatform.createInstance().getAdminFile());
+                m.read(in, null, "N-TRIPLE");
+                omodel.addSubModel(m, true);
+                in.close();
+            } catch (Exception e) {
+                log.warn(e.getMessage());
+            }
+            model = omodel;
+        } else if (name.equals(SWBAdmin)) {
+            List ns = SWBUtils.Collections.copyIterator(model.listNameSpaces());
+            if (ns.size() <= 1) { // verifica que no exista mas de un namespace
+                log.info("Importing SWBAdmin...");
+                try {
+                    FileInputStream in = new FileInputStream(SWBUtils.getApplicationPath() + SWBPlatform.createInstance().getAdminFile());
+                    if (model.supportsTransactions()) {
+                        ModelRDB m = (ModelRDB) model;
+                        try {
+                            m.begin();
+                            m.read(in, null, "N-TRIPLE");
+                            in.close();
+                        } catch (Exception e) {
+                            log.error(e);
+                        } finally {
+                            m.commit();
+                        }
+                    } else {
+                        model.read(in, null, "N-TRIPLE");
+                        in.close();
+                    }
+                } catch (Exception e) {
+                    log.warn(e.getMessage());
+                }
+            }
+        } else if (name.equals(SWBOntEdit) && !SWBPlatform.createInstance().isAdminDev()) {
+            log.info("Loading SWBOntEdit...");
+            OntModel omodel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, model);
+            try {
+                Model m = ModelFactory.createDefaultModel();
+                FileInputStream in = new FileInputStream(SWBUtils.getApplicationPath() + SWBPlatform.createInstance().getOntEditFile());
+                m.read(in, null, "N-TRIPLE");
+                omodel.addSubModel(m, true);
+                in.close();
+            } catch (Exception e) {
+                log.warn(e.getMessage());
+            }
+            model = omodel;
+        } else if (name.equals(SWBOntEdit)) {
+            NsIterator it = model.listNameSpaces();
+            if (!it.hasNext()) {
+                log.info("Importing SWBOntEdit...");
+                it.close();
+                try {
+                    FileInputStream in = new FileInputStream(SWBUtils.getApplicationPath() + SWBPlatform.createInstance().getOntEditFile());
+                    if (model instanceof ModelRDB) {
+                        ModelRDB m = (ModelRDB) model;
+                        try {
+                            m.begin();
+                            m.read(in, null, "N-TRIPLE");
+                            in.close();
+                        } catch (Exception e) {
+                            log.error(e);
+                        } finally {
+                            m.commit();
+                        }
+                    } else {
+                        model.read(in, null, "N-TRIPLE");
+                        in.close();
+                    }
+                } catch (Exception e) {
+                    log.warn(e.getMessage());
+                }
+            }
         }
-
-        if (SWBOntEdit.equals(name)) {
-            loadSWBOntEditModel(model, SWBUtils.getApplicationPath() + SWBPlatform.createInstance().getOntEditFile());
-        }
-
         SemanticModel m = null;
-
         //Verificar si es una ontologia
         Resource res = model.getResource(model.getNsPrefixURI(name) + name);
         StmtIterator it = res.listProperties(RDF.type);
@@ -734,12 +710,12 @@ public class SemanticMgr implements SWBInstanceObject {
         }
         it.close();
 
-        //Si no es una ontología
-        if (m == null) {
+        if (m == null) //No es una ontologia
+        {
             m = new SemanticModel(name, model);
         }
 
-        //TODO:notify this action
+        //TODO:notify this
         addModel(m, true);
         return m;
     }
@@ -813,7 +789,7 @@ public class SemanticMgr implements SWBInstanceObject {
      */
     @Deprecated
     public SemanticModel createDBModelByRDF(String name, String namespace, InputStream in) {
-        return createTripleStoreModelByRDF(name, namespace, in, null);
+        return createTripleStoreModelByRDF(name, namespace, in);
     }
 
     /**
@@ -852,24 +828,26 @@ public class SemanticMgr implements SWBInstanceObject {
      * @return the semantic model
      */
     public SemanticModel createTripleStoreModelByRDF(String name, String namespace, InputStream in, String lang) {
-        //Create SemanticModel and get RDF model
         SemanticModel ret = createModel(name, namespace);
         Model model = ret.getRDFModel();
-
-        //Read statements into model
-        if (model.supportsTransactions()) {
-            model.begin();
-        }
-
         try {
-            model.read(in, null, lang);
-            in.close();
-        } catch (IOException ioex) {
-            log.error(ioex);
-        }
-
-        if (model.supportsTransactions()) {
-            model.commit();
+            if (model.supportsTransactions()) {
+                try {
+                    model.begin();
+                    model.read(in, null, lang);
+                    in.close();
+                } catch (Exception e) {
+                    log.error(e);
+                } finally {
+                    model.commit();
+                }
+            } else {
+                model.read(in, null, lang);
+                in.close();
+            }
+            //Limpia cache provisional
+        } catch (Exception e) {
+            log.error(e);
         }
         return ret;
     }
@@ -1012,7 +990,6 @@ public class SemanticMgr implements SWBInstanceObject {
         }
     }
 
-
     /**
      * Notifies a change in a local Triple Store to registered observers.
      *
@@ -1084,7 +1061,6 @@ public class SemanticMgr implements SWBInstanceObject {
             SWBPlatform.getSemanticMgr().notifyTSChange(obj, stmt, action, true);
         }
     }
-
 
     /**
      * Gets the {@link SemanticMgr}'s code package.
