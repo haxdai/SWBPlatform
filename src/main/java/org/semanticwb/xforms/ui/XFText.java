@@ -336,7 +336,7 @@ public class XFText extends XformsBaseImp
    @Override 
    public String getXmlBind() 
     {
-        StringBuffer strbXml=new StringBuffer();
+        StringBuilder strbXml=new StringBuilder();
         strbXml.append("<bind id=\"bind_"+id+"\" nodeset=\""+id+"\"");
         if(isrequired) {
             strbXml.append(" required=\"true()\" "); 
@@ -357,7 +357,7 @@ public class XFText extends XformsBaseImp
     @Override
     public String getXml() 
     {
-        StringBuffer strbXml=new StringBuffer();
+        StringBuilder strbXml=new StringBuilder();
         try {
             strbXml.append("<input id=\""+id+"\" bind=\"bind_"+id+"\">");
             

@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -17,183 +17,158 @@
  * de la misma.
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
- * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ * dirección electrónica: http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.platform;
 
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.util.iterator.ClosableIterator;
-import java.util.ArrayList;
-import java.util.Iterator;
 import org.semanticwb.Logger;
 import org.semanticwb.SWBRuntimeException;
 import org.semanticwb.SWBUtils;
 
-// TODO: Auto-generated Javadoc
+import java.util.ArrayList;
+import java.util.Iterator;
+
 /**
- * The Class SemanticIterator.
- * 
+ * Iterator implementation for {@link SemanticObject}.
+ *
  * @param <T> the generic type
  * @author victor.lorenzana
  */
-public class SemanticIterator<T extends SemanticObject> implements Iterator
-{
-    
-    /** The log. */
-    private static Logger log=SWBUtils.getLogger(SemanticIterator.class);
+public class SemanticIterator<T extends SemanticObject> implements Iterator {
+    private static Logger LOG = SWBUtils.getLogger(SemanticIterator.class);
 
-    /** The iterator. */
+    /**
+     * The internal iterator.
+     */
     private Iterator iterator;
-    
-    /** The invert. */
-    private boolean invert=false;
-            
-    private SemanticModel model=null;
-    private SemanticClass cls=null;
+    private boolean invert;
+
+    private SemanticModel model = null;
+    private SemanticClass cls = null;
 
     /**
-     * Instantiates a new semantic iterator.
-     * 
-     * @param iterator the iterator
+     * Creates a new {@link SemanticIterator} using a generic {@link Iterator}.
+     *
+     * @param iterator the {@link Iterator}
      */
-    public SemanticIterator(Iterator iterator)
-    {
-        this(iterator,false);
+    public SemanticIterator(Iterator iterator) {
+        this(iterator, false);
     }
 
     /**
-     * Instantiates a new semantic iterator.
-     * 
-     * @param iterator the iterator
-     * @param invert the invert
+     * Creates a new {@link SemanticIterator} using a generic {@link Iterator}.
+     *
+     * @param iterator the {@link Iterator}
+     * @param invert   whether to check inverse properties on Resources.
      */
-    public SemanticIterator(Iterator iterator, boolean invert)
-    {
-        this.iterator=iterator;
-        if(this.iterator==null)this.iterator=new ArrayList().iterator();
-        this.invert=invert;
-        //System.out.println("  Create Iterator");
+    public SemanticIterator(Iterator iterator, boolean invert) {
+        this.iterator = iterator;
+        if (this.iterator == null) {
+            this.iterator = new ArrayList().iterator();
+        }
+        this.invert = invert;
     }
 
-    public SemanticIterator(Iterator iterator, boolean invert, SemanticModel model, SemanticClass cls)
-    {
-        this.iterator=iterator;
-        if(this.iterator==null)this.iterator=new ArrayList().iterator();
-        this.invert=invert;
-        this.model=model;
-        this.cls=cls;
-        //System.out.println("  Create Iterator");
-    }
-    
-    /* (non-Javadoc)
-     * @see java.util.Iterator#remove()
+    /**
+     * Creates a new {@link SemanticIterator} using a generic {@link Iterator}.
+     *
+     * @param iterator the {@link Iterator}
+     * @param invert   whether to check inverse properties on Resources.
+     * @param model    the objects model
+     * @param model    the objects class
      */
-    public void remove()
-    {
+    public SemanticIterator(Iterator iterator, boolean invert, SemanticModel model, SemanticClass cls) {
+        //TODO: Check why model and cls are needed. They are not used anywhere in code
+        this(iterator, invert);
+        this.model = model;
+        this.cls = cls;
+    }
+
+    @Override
+    public void remove() {
         iterator.remove();
     }
-    
-    /* (non-Javadoc)
-     * @see java.util.Iterator#hasNext()
+
+    /**
+     * Returns {@code true} if the iteration has more elements.
+     *
+     * @return true if the iteration has more elements.
+     * @see Iterator#hasNext()
      */
-    public boolean hasNext() 
-    {
-        boolean ret=iterator.hasNext();
-        if(!ret && iterator instanceof ClosableIterator)
-        {
-            //System.out.println("  Close Iterator");
-            ((ClosableIterator)iterator).close();
+    public boolean hasNext() {
+        boolean ret = iterator.hasNext();
+        if (!ret && iterator instanceof ClosableIterator) {
+            ((ClosableIterator) iterator).close();
         }
         return ret;
     }
-    
-    /* (non-Javadoc)
-     * @see java.util.Iterator#next()
+
+    /**
+     * Returns the next element in the iteration.
+     *
+     * @return next element in the iteration.
      */
-    public T next() 
-    {        
-        Object obj=iterator.next();
-        {
-            if(obj instanceof Statement)
-            {
-//                System.out.println("iter obj:"+((Statement)obj));
-                try
-                {
-                    if(invert)
-                    {
-                        T aux=(T)SemanticObject.createSemanticObject(((Statement)obj).getSubject());
-                        if(aux==null)
-                        {
-                            log.warn("Remove bad statement from cache:"+obj);
-                            if(((Statement)obj).getObject().isResource())
-                            {
-                                SemanticObject o=SemanticObject.getSemanticObjectFromCache(((Statement)obj).getResource().getURI());
-                                if(o!=null)
-                                {
-                                    o.removeInv((Statement)obj);
-                                }
+    public T next() {
+        Object obj = iterator.next();
+
+        if (obj instanceof Statement) {
+            try {
+                if (invert) {
+                    T aux = (T) SemanticObject.createSemanticObject(((Statement) obj).getSubject());
+                    if (aux == null) {
+                        LOG.warn("Remove bad statement from cache: " + obj);
+                        if (((Statement) obj).getObject().isResource()) {
+                            SemanticObject o = SemanticObject
+                                    .getSemanticObjectFromCache(((Statement) obj).getResource().getURI());
+
+                            if (o != null) {
+                                o.removeInv((Statement) obj);
                             }
                         }
-                        return aux;
-                    }else
-                    {
-                        T aux=(T)SemanticObject.createSemanticObject(((Statement)obj).getResource());
-                        if(aux==null)
-                        {
-                            log.warn("Remove bad statement from cache:"+obj);
-                            SemanticObject o=SemanticObject.getSemanticObjectFromCache(((Statement)obj).getSubject().getURI());
-                            if(o!=null)
-                            {
-                                o.remove((Statement)obj,true);
-                            }
+                    }
+                    return aux;
+                } else {
+                    T aux = (T) SemanticObject.createSemanticObject(((Statement) obj).getResource());
+                    if (aux == null) {
+                        LOG.warn("Remove bad statement from cache:" + obj);
+                        SemanticObject o = SemanticObject
+                                .getSemanticObjectFromCache(((Statement) obj).getSubject().getURI());
+
+                        if (o != null) {
+                            o.remove((Statement) obj, true);
                         }
-                        return aux;
                     }
-                }catch(SWBRuntimeException re)
-                {
-                    log.error(re);
-                    if(re.getMessage().startsWith("Resource not Found"))
-                    {
-                        log.warn("Removing bad link:"+((Statement)obj).getResource());
-                        ((Statement)obj).remove();
-                    }
-                    return null;
-                }catch(Exception ie)
-                {
-                    log.error(ie);
-                    return null;
+                    return aux;
                 }
-                //{
-                //    throw new AssertionError(ie.getMessage());
-                //}
+            } catch (SWBRuntimeException re) {
+                LOG.error(re);
+                //TODO: Check convenience to use a ResourceNotFoundException instead of comparing exception message
+                if (re.getMessage().startsWith("Resource not Found")) {
+                    LOG.warn("Removing bad link:" + ((Statement) obj).getResource());
+                    ((Statement) obj).remove();
+                }
+                return null;
+            } catch (Exception ie) {
+                LOG.error(ie);
+                return null;
             }
-            else if(obj instanceof Resource)
-            {
-                try
-                {
-                    return (T)SemanticObject.createSemanticObject((Resource)obj);
-                }
-                catch(Exception ie)
-                {
-                    throw new AssertionError(ie.getMessage());        
-                }
+        } else if (obj instanceof Resource) {
+            try {
+                return (T) SemanticObject.createSemanticObject((Resource) obj);
+            } catch (Exception ie) {
+                throw new AssertionError(ie.getMessage());
             }
-            else if(obj instanceof String)
-            {
-                try
-                {
-                    return (T)SemanticObject.createSemanticObject((String)obj);
-                }
-                catch(Exception ie)
-                {
-                    throw new AssertionError(ie.getMessage());
-                }
-            }else
-            {
-                throw new AssertionError("No type found...");      
+        } else if (obj instanceof String) {
+            try {
+                return (T) SemanticObject.createSemanticObject((String) obj);
+            } catch (Exception ie) {
+                throw new AssertionError(ie.getMessage());
             }
+        } else {
+            throw new AssertionError("No type found...");
         }
     }
 }

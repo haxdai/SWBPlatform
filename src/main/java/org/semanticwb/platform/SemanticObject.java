@@ -57,7 +57,7 @@ import org.w3c.dom.Document;
  *
  * @author javier.solis.g
  */
-public class SemanticObject 
+public class SemanticObject
 {
     /** The log. */
     private static Logger log = SWBUtils.getLogger(SemanticObject.class);
@@ -79,36 +79,36 @@ public class SemanticObject
 
     /** The m_objs. */
     private static Map<String, SemanticObject>m_objs=new ConcurrentHashMap<String, SemanticObject>();
-    
+
     /** The m_uris. */
     private static ConcurrentHashMap<String, String>m_uris=new ConcurrentHashMap<String, String>();
-    
+
     /** The m_no_objs. */
     private static Map<String, Object>m_no_objs=new HashMapCache<String, Object>(1000);
-    
+
     /** The has cache. */
-    private static boolean hasCache=true;        
-    
+    private static boolean hasCache=true;
+
     //No cambian
     /** The ext get methods. */
     private static HashMap<String, Method> extGetMethods=new HashMap();
 
     /** The ext set methods. */
-    private static HashMap<String, Method> extSetMethods=new HashMap();    
-    
+    private static HashMap<String, Method> extSetMethods=new HashMap();
+
     /** The wrapper to primitive. */
     private static HashMap<Class,Class> wrapperToPrimitive = new HashMap();
-    
+
     static {
-            wrapperToPrimitive.put( Boolean.class, Boolean.TYPE );
-            wrapperToPrimitive.put( Byte.class, Byte.TYPE );
-            wrapperToPrimitive.put( Short.class, Short.TYPE );
-            wrapperToPrimitive.put( Character.class, Character.TYPE );
-            wrapperToPrimitive.put( Integer.class, Integer.TYPE );
-            wrapperToPrimitive.put( Long.class, Long.TYPE );
-            wrapperToPrimitive.put( Float.class, Float.TYPE );
-            wrapperToPrimitive.put( Double.class, Double.TYPE );
-    }     
+        wrapperToPrimitive.put( Boolean.class, Boolean.TYPE );
+        wrapperToPrimitive.put( Byte.class, Byte.TYPE );
+        wrapperToPrimitive.put( Short.class, Short.TYPE );
+        wrapperToPrimitive.put( Character.class, Character.TYPE );
+        wrapperToPrimitive.put( Integer.class, Integer.TYPE );
+        wrapperToPrimitive.put( Long.class, Long.TYPE );
+        wrapperToPrimitive.put( Float.class, Float.TYPE );
+        wrapperToPrimitive.put( Double.class, Double.TYPE );
+    }
 
     /** The m_genobj. */
     private GenericObject m_genobj=null;
@@ -124,24 +124,24 @@ public class SemanticObject
 
     /** The m_virtual. */
     private boolean m_virtual = false;
-        
+
     //private List<Statement> m_props=Collections.synchronizedList(new ArrayList());
     private List<Statement> m_props=new CopyOnWriteArrayList<Statement>();
     private List<Statement> m_propsInv=null;
-    
+
     private HashMap<String,Object> m_propertyMap=null;                                  //Cache de propiedades en HashMap, para JS
-    
+
     /** The lastaccess. */
     private long lastaccess=System.currentTimeMillis();
-    
+
     /** The m_cachepropsrel. */
-    private Map m_cachepropsrel=new ConcurrentHashMap<String, Object>();                    //Cache de objetos relacionados a la propiedad    
-    
-   
+    private Map m_cachepropsrel=new ConcurrentHashMap<String, Object>();                    //Cache de objetos relacionados a la propiedad
+
+
     /**
      * Creacion de un SemanticObject Virtual
      */
-    public SemanticObject()             
+    public SemanticObject()
     {
         m_virtual=true;
     }
@@ -149,52 +149,52 @@ public class SemanticObject
     /**
      * Creacion de un SemanticObject Virtual
      * @param smodel
-     * @param scls 
+     * @param scls
      */
-    public SemanticObject(SemanticModel smodel, SemanticClass scls)             
+    public SemanticObject(SemanticModel smodel, SemanticClass scls)
     {
         m_model=smodel;
         m_cls=scls;
         m_virtual=true;
         m_res=smodel.getRDFModel().createResource();
-        m_props.add(smodel.getRDFModel().createStatement(m_res, RDF.type, scls.getOntClass()));           
+        m_props.add(smodel.getRDFModel().createStatement(m_res, RDF.type, scls.getOntClass()));
     }
-    
+
     /**
      * Creacion de un nuevo SemanticObject
      * @param smodel
      * @param res
-     * @param scls 
+     * @param scls
      */
-    public SemanticObject(SemanticModel smodel, Resource res, SemanticClass scls) 
+    public SemanticObject(SemanticModel smodel, Resource res, SemanticClass scls)
     {
         m_model=smodel;
-        m_res=res;        
+        m_res=res;
         m_cls=scls;
-        m_props.add(smodel.getRDFModel().createStatement(res, RDF.type, scls.getOntClass())); 
+        m_props.add(smodel.getRDFModel().createStatement(res, RDF.type, scls.getOntClass()));
         if(res!=null)m_no_objs.remove(res.getURI());
-    }    
-    
+    }
+
     /**
      * Carga de un semanticObject de DB
      * @param smodel
      * @param res
-     * @param stit 
+     * @param stit
      */
-    public SemanticObject(SemanticModel smodel, Resource res, Iterator<Statement> stit) 
+    public SemanticObject(SemanticModel smodel, Resource res, Iterator<Statement> stit)
     {
         m_model=smodel;
         m_res=res;
         init(stit);
     }
-    
+
     private void init(Iterator<Statement> stit)
     {
-        while (stit.hasNext()) 
-        {            
+        while (stit.hasNext())
+        {
             Statement st = stit.next();
             m_props.add(0,st);
-            
+
             if(st.getPredicate().equals(RDF.type))
             {
                 if(m_cls==null || !m_cls.isSWBClass())
@@ -208,31 +208,31 @@ public class SemanticObject
         if(stit instanceof StmtIterator)((StmtIterator)stit).close();
         m_propertyMap=null;
     }
-        
+
     private void initInverse(StmtIterator stit)
     {
         //System.out.println("initInverse");
         //new Exception().printStackTrace();
-        while (stit.hasNext()) 
-        {            
+        while (stit.hasNext())
+        {
             Statement st = stit.next();
             //System.out.println("-->"+st);
             m_propsInv.add(st);
         }
         stit.close();
-    }    
-    
+    }
+
     public void reloadProps()
     {
         if(m_res!=null)
         {
-            m_props.clear();    
+            m_props.clear();
             m_cachepropsrel.clear();
             init(m_res.listProperties());
         }
         //System.out.println("reloadProps");
     }
-    
+
     public void reloadInvProps()
     {
         if(m_propsInv==null)m_propsInv=Collections.synchronizedList(new ArrayList());
@@ -243,18 +243,18 @@ public class SemanticObject
             //TODO: Revisar inversas de otros modelos
         }
     }
-    
+
     public void clearInvProps()
     {
         m_propsInv=null;
     }
-    
-    
+
+
     private List<Statement> getProps()
     {
         return m_props;
     }
-    
+
     private List<Statement> getPropsInv()
     {
         if(m_propsInv==null)
@@ -269,7 +269,7 @@ public class SemanticObject
         }
         return m_propsInv;
     }
-    
+
     private void addStatementToPropertyMap(Statement statement, Map map)
     {
         if(map==null)return;
@@ -296,7 +296,7 @@ public class SemanticObject
             {
                 arr = new ArrayList();
                 map.put(name, arr);
-            }                
+            }
             if (prop.isDataTypeProperty()) {
                 Literal lit=statement.getLiteral();
                 if (lit != null) {
@@ -308,19 +308,19 @@ public class SemanticObject
                     arr.add(value);
                 }
             }
-        }        
+        }
     }
-    
+
     private void removeStatementToPropertyMap(Statement statement, Map map)
     {
-        if(map==null)return;        
+        if(map==null)return;
         Property rdfprop=statement.getPredicate();
         SemanticProperty prop=SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(rdfprop);
 
         String name = prop.getName();
         if (prop.getCardinality() == 1) {
             map.remove(name);
-        } else 
+        } else
         {
             ArrayList arr = (ArrayList)map.get(name);
             if(arr!=null)
@@ -337,9 +337,9 @@ public class SemanticObject
                     }
                 }
             }
-        }        
-    }    
-    
+        }
+    }
+
     public Map asPropertyMap()
     {
         if(m_propertyMap==null)
@@ -350,7 +350,7 @@ public class SemanticObject
                 {
                     m_propertyMap=new HashMap();
                     Iterator<Statement> it=m_props.iterator();
-                    while (it.hasNext()) 
+                    while (it.hasNext())
                     {
                         Statement statement = it.next();
                         addStatementToPropertyMap(statement, m_propertyMap);
@@ -360,14 +360,14 @@ public class SemanticObject
         }
         return m_propertyMap;
     }
-    
-    /*********************************************** statics ****************************************************************/    
-    
+
+    /*********************************************** statics ****************************************************************/
+
     public static void clearNotFoundURI(String uri)
     {
         m_no_objs.remove(uri);
     }
-    
+
     /**
      * Carga todos los datos de la DB
      */
@@ -375,16 +375,16 @@ public class SemanticObject
     {
         HashMap<String, SemanticObject> map=new HashMap();
         StmtIterator it=model.getRDFModel().listStatements();
-        while (it.hasNext()) 
+        while (it.hasNext())
         {
             Statement st = it.next();
             Resource subj=st.getSubject();
             Property prop=st.getPredicate();
             RDFNode obj=st.getObject();
-            
+
             //if(model.getName().equals("uradm"))
             //System.out.println(subj+" "+prop+" "+obj);
-            
+
             String uri=subj.getURI();
             if(uri!=null)
             {
@@ -398,20 +398,20 @@ public class SemanticObject
                     map.put(uri, sobj);
                 }
                 sobj.m_props.add(0,st);
-                
-                
+
+
                 if(prop.equals(RDF.type))
                 {
-                    //if(model.getName().equals("uradm"))   
+                    //if(model.getName().equals("uradm"))
                     //if(sobj.getURI().endsWith(":45"))
                     //System.out.println("obj:"+sobj+" "+sobj.m_cls+" "+prop);
                     if(sobj.m_cls==null || !sobj.m_cls.isSWBClass())
                     {
                         sobj.m_cls = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticClass(obj.asResource().getURI());
-                        //if(model.getName().equals("uradm"))                        
+                        //if(model.getName().equals("uradm"))
                         //if(sobj.getURI().endsWith(":45"))
                         //System.out.println("cls:"+sobj.m_cls+" "+subj);
-                    }            
+                    }
                 }
             }
             //Inversa
@@ -434,26 +434,26 @@ public class SemanticObject
                 }
             }
         }
-        
+
         //System.out.println("Cache:"+model.getName()+" "+map.size());
-            
+
         Iterator<SemanticObject> it2=map.values().iterator();
         while (it2.hasNext()) {
             SemanticObject semanticObject = it2.next();
-            
+
             //if(model.getName().equals("uradm"))
             //System.out.println("put:"+semanticObject);
-            
+
             if(semanticObject.m_props.size()>0)
             {
-               cacheSemanticObject(semanticObject);
-               if(semanticObject.m_propsInv==null)semanticObject.m_propsInv=Collections.synchronizedList(new ArrayList());
-               semanticObject.m_propertyMap=null;
+                cacheSemanticObject(semanticObject);
+                if(semanticObject.m_propsInv==null)semanticObject.m_propsInv=Collections.synchronizedList(new ArrayList());
+                semanticObject.m_propertyMap=null;
             }
         }
     }
-    
-    
+
+
     /**
      * Regresa instancia del SemanticObject si existe en Cache, de lo contrario
      * regresa null.
@@ -465,7 +465,7 @@ public class SemanticObject
     public static SemanticObject getSemanticObjectFromCache(String uri)
     {
         SemanticObject ret=null;
-        
+
         if(hasCache && null!=uri)
         {
             ret=m_objs.get(uri);
@@ -473,8 +473,8 @@ public class SemanticObject
             //if(ret!=null)System.out.println(" -->:"+ret.getProps().size());
         }
         return ret;
-    }    
-    
+    }
+
     /**
      * Regrea una instancia del SemanticObject en base al URI dado.
      * Si el recurso no existe regresa null
@@ -486,9 +486,9 @@ public class SemanticObject
     public static SemanticObject getSemanticObject(String uri)
     {
         return createSemanticObject(uri,null);
-    }    
-    
-    
+    }
+
+
     /**
      * Regrea una instancia del SemanticObject en base al URI dado.
      * Si el recurso no existe regresa null
@@ -501,7 +501,7 @@ public class SemanticObject
     {
         return createSemanticObject(uri, null);
     }
-    
+
     /**
      * Creates the semantic object.
      *
@@ -526,21 +526,21 @@ public class SemanticObject
             }else
             {
                 return null;
-            }            
+            }
         }
-    }    
-    
+    }
+
     protected static void cacheSemanticObject(SemanticObject obj)
     {
         //TODO:Validar si puede agregarse a cache
         if(hasCache && obj!=null && obj.getURI()!=null)
         {
             m_objs.put(obj.getURI(), obj);
-        }          
+        }
     }
-    
-   
-    
+
+
+
     /**
      * Regrea una instancia del SemanticObject en base al URI dado en el modelo definido.
      * Si el recurso no existe regresa null
@@ -558,7 +558,7 @@ public class SemanticObject
         {
             String i_uri=m_uris.putIfAbsent(uri, uri);
             if(i_uri==null)i_uri=uri;
-            
+
 //            System.out.println("Sync:"+uri);
 //            synchronized(SemanticObject.class)
             synchronized(i_uri)
@@ -571,7 +571,7 @@ public class SemanticObject
 //                    {
 //                        Thread.sleep(100);
 //                    }catch(Exception e){}
-                    
+
                     //System.out.println("createSemanticObject:"+uri);
                     if(smodel!=null)
                     {
@@ -584,7 +584,7 @@ public class SemanticObject
                         {
                             ret=null;
                         }
-                    }else 
+                    }else
                     {
                         int i=uri.indexOf('#');
                         if(i==-1)i=uri.lastIndexOf('/');
@@ -644,15 +644,15 @@ public class SemanticObject
                         }
 
 
-                    }                    
-                    cacheSemanticObject(ret);                    
+                    }
+                    cacheSemanticObject(ret);
                 }
                 if(ret==null)m_no_objs.put(uri, uri);
             }
         }
         return ret;
-    }        
-    
+    }
+
     /**
      * Elimina el SemanticObject del cache
      * param uri del SemanticObject a eliminar del cache.
@@ -685,7 +685,7 @@ public class SemanticObject
     {
         return m_objs.size();
     }
-    
+
     public static String shortToFullURI(String shorturi)
     {
         int pos=shorturi.indexOf("#");
@@ -712,11 +712,11 @@ public class SemanticObject
         {
             throw new IllegalArgumentException("The separator ':' was not found in shorturi "+shorturi);
         }
-    }    
-    
-    /*********************************************** instance ****************************************************************/    
-    
-    
+    }
+
+    /*********************************************** instance ****************************************************************/
+
+
     /**
      * Gets the URI.
      *
@@ -730,8 +730,8 @@ public class SemanticObject
             ret=m_res.getURI();
         }
         return ret;
-    }    
-    
+    }
+
     public String getShortURI()
     {
         if(getURI()==null)
@@ -750,7 +750,7 @@ public class SemanticObject
         }
         return getShortURI;
     }
-    
+
     /**
      * Gets the res id.
      *
@@ -778,8 +778,8 @@ public class SemanticObject
         if(ret==null || ret.length()==0)ret=getId();
         if(ret==null)ret=m_res.toString();
         return ret;
-    }    
-    
+    }
+
     /**
      * Gets the id.
      *
@@ -802,8 +802,8 @@ public class SemanticObject
             }
         }
         return id;
-    } 
-    
+    }
+
     /*
      * Regresa URI codificado para utilizar en ligas de html.
      *
@@ -813,7 +813,7 @@ public class SemanticObject
     {
         return URLEncoder.encode(getURI());
     }
-    
+
     /**
      * Gets the rDF name.
      *
@@ -827,8 +827,8 @@ public class SemanticObject
             ret=m_res.getLocalName();
         }
         return ret;
-    }    
-    
+    }
+
     /**
      * Gets the prefix.
      *
@@ -842,8 +842,8 @@ public class SemanticObject
             ret=m_res.getModel().getNsURIPrefix(m_res.getNameSpace());
         }
         return ret;
-    }    
-    
+    }
+
     /**
      * Regresa el Modelo de del SemanticObject.
      *
@@ -853,8 +853,8 @@ public class SemanticObject
     public SemanticModel getModel()
     {
         return m_model;
-    }   
-    
+    }
+
     /**
      * Gets the rDF resource.
      *
@@ -863,8 +863,8 @@ public class SemanticObject
     public Resource getRDFResource()
     {
         return m_res;
-    }    
-    
+    }
+
     /**
      * Gets the semantic class.
      *
@@ -885,11 +885,11 @@ public class SemanticObject
                         m_cls = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticClass(st.getResource().getURI());
                     }
                 }
-            }            
+            }
         }
         return m_cls;
-    }   
-    
+    }
+
     /**
      * List semantic classes.
      *
@@ -898,8 +898,8 @@ public class SemanticObject
     public Iterator<SemanticClass> listSemanticClasses()
     {
         return new SemanticClassIterator<SemanticClass>(listProperties(RDF.type));
-    }       
-    
+    }
+
     /**
      * Adds the semantic class.
      *
@@ -938,8 +938,8 @@ public class SemanticObject
             reloadProps();
         }
         return this;
-    }    
-    
+    }
+
     /**
      * Sets the rDF resource.
      *
@@ -951,9 +951,9 @@ public class SemanticObject
         m_model=SWBPlatform.getSemanticMgr().getModel(res.getModel());
         reloadProps();
         clearInvProps();
-    }    
-    
-    
+    }
+
+
     /**
      * Checks if is virtual.
      *
@@ -962,9 +962,9 @@ public class SemanticObject
     public boolean isVirtual()
     {
         return m_virtual;
-    }    
-    
-    
+    }
+
+
     /**
      * Regresa tiempo en milisegundos de la ultima consulta del objeto.
      *
@@ -975,7 +975,7 @@ public class SemanticObject
     {
         return lastaccess;
     }
-    
+
     /**
      * Regresa una instancia del GenericObject asociado
      * Si ya existe una instancia en el cache la regresa, de lo contrario regresa null.
@@ -986,13 +986,13 @@ public class SemanticObject
     public GenericObject getGenericInstanceFromCache()
     {
         lastaccess=System.currentTimeMillis();
-        return m_genobj;        
-    }    
-    
+        return m_genobj;
+    }
+
     /**
      * Regresa una instancia del GenericObject asociado
      * Si ya existe una instancia la regresa, de lo contrario la crea.
-     * 
+     *
      * @return the generic instance
      * @return
      */
@@ -1000,7 +1000,7 @@ public class SemanticObject
     {
         return createGenericInstance();
     }
-    
+
     /**
      * Asigna una instancia GenericObject del objeto.
      *
@@ -1010,8 +1010,8 @@ public class SemanticObject
     private void setGenericInstance(GenericObject gen)
     {
         m_genobj=gen;
-    } 
-    
+    }
+
     /**
      * Regresa una instancia del GenericObject asociado
      * Si ya existe una instancia la regresa, de lo contrario la crea.
@@ -1067,13 +1067,13 @@ public class SemanticObject
             gen=clazz.construcGenericInstance(this);
         }
         return gen;
-    }    
-    
- //************************************************************** RDF BASE ***********************************************************   
-    
+    }
+
+    //************************************************************** RDF BASE ***********************************************************
+
     public Iterator<Statement> listProperties(Property prop)
     {
-        ArrayList ret=new ArrayList();        
+        ArrayList ret=new ArrayList();
         List stmts=getProps();
         for(int x=0;x<stmts.size();x++)
         {
@@ -1085,7 +1085,7 @@ public class SemanticObject
         }
         return ret.iterator();
     }
-    
+
     public void printStatements()
     {
         System.out.println("printStatements");
@@ -1098,34 +1098,34 @@ public class SemanticObject
         while (it.hasNext()) {
             Statement statement = it.next();
             System.out.println(statement);
-        }        
+        }
     }
-    
+
     private Statement getProperty(Property prop)
     {
         Iterator<Statement> it=listProperties(prop);
         if(it.hasNext())return it.next();
         return null;
-    }   
-    
-    
+    }
+
+
     protected void remove(boolean external)
     {
-        //System.out.println("remove:"+external);        
+        //System.out.println("remove:"+external);
         if(!m_virtual && !external)
         {
             getModel().getRDFModel().removeAll(getRDFResource(),null,null);
         }
         removeCache(getRDFResource().getURI());
-        
+
         if(!m_virtual && !external)
         {
             //Notify
             SWBPlatform.getSemanticMgr().notifyTSChange(this, null, ACT_REMOVE);
         }
-        
+
     }
-    
+
     private void remove(Property prop)
     {
         //System.out.println("remove:"+prop);
@@ -1141,13 +1141,13 @@ public class SemanticObject
             }
         }
     }
-    
+
     private boolean remove(Statement stmt)
     {
         //System.out.println("remove:"+stmt);
         return remove(stmt,false);
     }
-    
+
     protected boolean remove(Statement stmt, boolean external)
     {
         //System.out.println("remove:"+stmt+" "+external);
@@ -1162,22 +1162,22 @@ public class SemanticObject
                 {
                     stmt=statement;
                     break;
-                }       
+                }
             }
         }
-            
+
         ret=getProps().remove(stmt);
         removeStatementToPropertyMap(stmt, m_propertyMap);
-        
+
         if(ret)
         {
             if(!m_virtual && !external)
             {
-                m_model.getRDFModel().remove(stmt);                
+                m_model.getRDFModel().remove(stmt);
                 //Notify external.
                 SWBPlatform.getSemanticMgr().notifyTSChange(this, stmt, ACT_REMOVE);
             }
-                
+
             //Eliminar cache inversos
             RDFNode node=stmt.getObject();
             if(node !=null && node.isResource())
@@ -1192,15 +1192,15 @@ public class SemanticObject
                     {
                         SemanticObject sobj=getSemanticObjectFromCache(res.getURI());
                         if(sobj!=null)sobj.removeInv(stmt);
-                    }                 
+                    }
                 }
             }
-            
+
             m_cachepropsrel.remove(stmt.getPredicate().getURI());
         }
         return ret;
     }
-    
+
     private Statement addResource(Property prop, Resource obj)
     {
         Model m=m_model.getRDFModel();
@@ -1208,36 +1208,36 @@ public class SemanticObject
         addStatement(stmt);
         return stmt;
     }
-    
+
     private Statement addLiteral(Property prop, Object obj)
     {
         Model m=m_model.getRDFModel();
         Statement stmt=m.createStatement(m_res, prop, m.createTypedLiteral(obj));
         addStatement(stmt);
-        return stmt;        
+        return stmt;
     }
-    
+
     private Statement addLiteral(Property prop, String obj, String lang)
     {
         Model m=m_model.getRDFModel();
         Statement stmt=m.createStatement(m_res, prop, m.createLiteral(obj, lang));
         addStatement(stmt);
-        return stmt;        
-    }    
-    
+        return stmt;
+    }
+
     private Statement addLiteral(Property prop, String obj)
     {
         Model m=m_model.getRDFModel();
         Statement stmt=m.createStatement(m_res, prop, m.createLiteral(obj));
         addStatement(stmt);
-        return stmt;        
-    } 
-    
+        return stmt;
+    }
+
     private void addStatement(Statement stmt)
     {
         addStatement(stmt,false);
     }
-    
+
     protected void addStatement(Statement stmt, boolean external)
     {
         //System.out.println("addStatement:"+stmt+" "+external);
@@ -1252,10 +1252,10 @@ public class SemanticObject
                 {
                     stmt=statement;
                     contains=true;
-                }       
+                }
             }
-        }        
-        
+        }
+
         if(!m_virtual && !external)
         {
             Model m=m_model.getRDFModel();
@@ -1267,12 +1267,12 @@ public class SemanticObject
             getProps().add(stmt);
             addStatementToPropertyMap(stmt, m_propertyMap);
         }
-        
+
         if(!m_virtual && !external)
         {
-            SWBPlatform.getSemanticMgr().notifyTSChange(this, stmt, ACT_ADD);            
+            SWBPlatform.getSemanticMgr().notifyTSChange(this, stmt, ACT_ADD);
         }
-        
+
         //Agrega inversas
         RDFNode node=stmt.getObject();
         if(node !=null && node.isResource())
@@ -1293,15 +1293,15 @@ public class SemanticObject
                             sobj.addInvStatement(stmt);
                         }
                     }
-                }                 
+                }
             }
-        }  
-        
+        }
+
         m_cachepropsrel.remove(stmt.getPredicate().getURI());
     }
 
-//************************************************************** RDF Inv ***********************************************************   
- 
+//************************************************************** RDF Inv ***********************************************************
+
     public Iterator<Statement> listInvProperties(Property prop)
     {
         ArrayList ret=new ArrayList();
@@ -1313,24 +1313,24 @@ public class SemanticObject
             {
                 ret.add(statement);
             }
-        }       
+        }
         return ret.iterator();
-    }    
-    
-    
+    }
+
+
     private Statement getInvProperty(Property prop)
     {
         Iterator<Statement> it=listInvProperties(prop);
         if(it.hasNext())return it.next();
         return null;
-    }       
-    
+    }
+
     /**
      * Elimina el Statement del cache de inversas
      * @param stmt
-     * @return 
+     * @return
      */
-    
+
     protected boolean removeInv(Statement stmt)
     {
         if(getPropsInv().remove(stmt))
@@ -1338,8 +1338,8 @@ public class SemanticObject
             return true;
         }
         return false;
-    }     
-    
+    }
+
     private void removeInv(Property prop)
     {
         Object stmts[]=getPropsInv().toArray();
@@ -1349,29 +1349,29 @@ public class SemanticObject
             if(statement.getPredicate().equals(prop))
             {
                 removeInv(statement);
-            }       
-        }        
-    }    
-    
+            }
+        }
+    }
+
     private void addInvStatement(Statement stmt)
     {
         //System.out.println(stmt);
         //new Exception().printStackTrace();
-        getPropsInv().add(stmt);        
-    }    
-    
-    
-//************************************************************** RDF End ***********************************************************   
- 
-    
+        getPropsInv().add(stmt);
+    }
+
+
+//************************************************************** RDF End ***********************************************************
+
+
 //    /**
 //     * Elimina cache de propiedades del objeto.
 //     */
 //    public void resetCache()
 //    {
-//    }    
-    
-    @Override    
+//    }
+
+    @Override
     public String toString()
     {
         if (m_res==null)
@@ -1379,12 +1379,12 @@ public class SemanticObject
             return super.toString();
         }
         return m_res.toString();
-    }    
-    
+    }
+
     /* (non-Javadoc)
      * @see java.lang.Object#hashCode()
      */
-    @Override    
+    @Override
     public int hashCode()
     {
         if (m_res==null)
@@ -1392,8 +1392,8 @@ public class SemanticObject
             return super.hashCode();
         }
         return m_res.hashCode();
-    }    
-    
+    }
+
     /* (non-Javadoc)
      * @see java.lang.Object#equals(java.lang.Object)
      */
@@ -1402,8 +1402,8 @@ public class SemanticObject
     {
         if(obj==null)return false;
         return hashCode() == obj.hashCode();
-    }    
-    
+    }
+
     /**
      * Instance of.
      *
@@ -1420,7 +1420,7 @@ public class SemanticObject
         }
         return ret;
     }
-    
+
 //***********************************************************************************************************************/
 
     /**
@@ -1444,7 +1444,7 @@ public class SemanticObject
 //                    try
 //                    {
 //                        dom = SWBUtils.XML.xmlToDom(new java.io.ByteArrayInputStream(xml.getBytes("UTF-8")));
-//                    }catch (UnsupportedEncodingException ex2) 
+//                    }catch (UnsupportedEncodingException ex2)
 //                    {
 //                        log.error(ex2);
 //                    }
@@ -1456,7 +1456,7 @@ public class SemanticObject
             }
             m_cachepropsrel.put(prop.getURI(), dom);
             //System.out.println("getDomProperty");
-        }        
+        }
         return dom;
     }
 
@@ -1473,7 +1473,7 @@ public class SemanticObject
         if (m_res!=null)
         {
             Statement stm = null;
-            
+
             stm = getProperty(prop.getRDFProperty());
             if (stm != null)
             {
@@ -1543,12 +1543,12 @@ public class SemanticObject
             Object obj=literal.getValue();
             String lang=literal.getLanguage();
             Statement stm = null;
-            
+
             if(replace)
             {
                 if(!prop.isLocaleable())
                 {
-                    //System.out.println("borrar:"+prop.getRDFProperty());                    
+                    //System.out.println("borrar:"+prop.getRDFProperty());
                     remove(prop.getRDFProperty());
                 }else
                 {
@@ -1565,7 +1565,7 @@ public class SemanticObject
                     }
                 }
             }
-            
+
             if(obj!=null)
             {
                 if(obj instanceof String)
@@ -1586,7 +1586,7 @@ public class SemanticObject
                 }
             }
         }
-        
+
         if(replace)
         {
             SWBPlatform.getSemanticMgr().notifyChange(this, prop, literal.getLanguage(), ACT_SET);
@@ -1669,14 +1669,14 @@ public class SemanticObject
         if (m_res!=null)
         {
             Property iprop = prop.getRDFProperty();
-                        
+
             Statement stm = getProperty(iprop);
             //System.out.println("stm:"+stm);
             if (stm != null)
             {
                 remove(stm);
             }
-            
+
             if(object!=null)
             {
                 Statement stmt2=addResource(iprop, object.getRDFResource());
@@ -1687,7 +1687,7 @@ public class SemanticObject
     }
 
 
-     /**
+    /**
      * Adds the object property.
      *
      * @param prop the prop
@@ -1716,7 +1716,7 @@ public class SemanticObject
             if(object!=null)
             {
                 Statement stmt2=addResource(iprop, object.getRDFResource());
-            }            
+            }
             if(notify)SWBPlatform.getSemanticMgr().notifyChange(this, prop, "list", ACT_ADD);
         }
         return this;
@@ -1736,7 +1736,7 @@ public class SemanticObject
         return removeObjectProperty(prop, object, true);
     }
 
-     /**
+    /**
      * Removes the object property.
      *
      * @param prop the prop
@@ -1746,7 +1746,7 @@ public class SemanticObject
     public SemanticObject removeObjectProperty(SemanticProperty prop, SemanticObject object, boolean notify)
     {
         if(notify) SWBPlatform.getSemanticMgr().notifyChange(this, prop, "list", ACT_REMOVE);
-        
+
         if (m_res!=null && object!=null)
         {
             Iterator<Statement> it = listProperties(prop.getRDFProperty());
@@ -1877,7 +1877,7 @@ public class SemanticObject
         }
         return list.iterator();
     }
-    
+
     /**
      * Regresa lista de objetos activos y no borrados relacionados por la propiedad
      * Si no encuentra en el objeto busca en los padres.
@@ -1889,7 +1889,7 @@ public class SemanticObject
     public Iterator<SemanticObject> listInheritProperties(SemanticProperty prop)
     {
         return listInheritProperties(prop, new ArrayList());
-    }    
+    }
 
     /**
      * Regresa lista de objetos activos y no borrados relacionados por la propiedad
@@ -2020,7 +2020,7 @@ public class SemanticObject
     private Statement getLocaleStatement(SemanticProperty prop, String lang)
     {
         //System.out.println(m_res+" "+prop+" "+lang);
-        
+
         Iterator<Statement> stit = listProperties(prop.getRDFProperty());
         //System.out.println("->"+m_res.getProperty(prop.getRDFProperty()));
         Statement st = null;
@@ -2089,7 +2089,7 @@ public class SemanticObject
             {
                 log.error(e);
             }
-        //System.out.println("externalInvoker:"+ret);
+            //System.out.println("externalInvoker:"+ret);
         }
         return ret;
     }
@@ -2181,7 +2181,7 @@ public class SemanticObject
             {
                 log.error(e);
             }
-        //System.out.println("externalInvoker:"+ret);
+            //System.out.println("externalInvoker:"+ret);
         }
         return ret;
     }
@@ -2218,9 +2218,9 @@ public class SemanticObject
                     remove(st);
                 }
             }
-            
+
         }
-        
+
         //Eliminar Inversas
         stmts=getPropsInv().toArray();
         for(int x=0;x<stmts.length;x++)
@@ -2233,7 +2233,7 @@ public class SemanticObject
                 SemanticObject obj=SemanticObject.createSemanticObject(res);
                 //System.out.println("res 2:"+res+" "+obj);
                 //System.out.println("prop 2:"+prop+" "+prop.isInverseOf()+prop.getInverse());
-                
+
                 if(prop.isInverseOf() && prop.getInverse().isRemoveDependency())
                 {
                     if(obj!=null && stack!=null && !stack.contains(obj))obj.remove(stack);
@@ -2242,7 +2242,7 @@ public class SemanticObject
                     if(obj!=null)obj.remove(st);
                 }
             }
-        }        
+        }
     }
 
 //    /**
@@ -2269,7 +2269,7 @@ public class SemanticObject
         //log.error(new Exception("Se borro el objecto:"+getURI()));
         remove(new ArrayList());
     }
-    
+
     /**
      * Removes the.
      *
@@ -2278,7 +2278,7 @@ public class SemanticObject
     public void remove(ArrayList<SemanticObject> stack)
     {
         remove(stack, true);
-    }    
+    }
 
     /**
      * Removes the.
@@ -2294,13 +2294,13 @@ public class SemanticObject
             removeDependencies(stack);
             SWBPlatform.getSemanticMgr().removeModel(getId());
             SWBPlatform.getSemanticMgr().notifyChange(this, null, null, ACT_REMOVE);
-            removeCache(getURI());            
+            removeCache(getURI());
         }else                                           //es un objeto
         {
             SWBPlatform.getSemanticMgr().notifyChange(this, null, null, ACT_REMOVE);
-            
+
             if(this.getSemanticClass()==null)printStatements();
-            
+
             try
             {
                 //TODO:revisar esto de vic
@@ -3323,7 +3323,7 @@ public class SemanticObject
         SemanticProperty prop=null;
         if (cls != null)
         {
-             prop= cls.getDisplayNameProperty();
+            prop= cls.getDisplayNameProperty();
         }
         if (prop != null)
         {
@@ -3355,7 +3355,7 @@ public class SemanticObject
                 /*
                 if(getURI()!=null)
                 {
-                    
+
                     int x=getURI().indexOf('#');
                     if(x>0)
                     {
@@ -3425,8 +3425,8 @@ public class SemanticObject
             SemanticProperty prop=(SemanticProperty)it.next();
             if(prop.isObjectProperty() && prop.isInverseOf())
             {
-               SemanticObject obj=getObjectProperty(prop);
-               if(obj!=null)arr.add(obj);
+                SemanticObject obj=getObjectProperty(prop);
+                if(obj!=null)arr.add(obj);
             }
         }
         return arr.iterator();
@@ -3662,8 +3662,8 @@ public class SemanticObject
     public String getComment(String lang)
     {
         return getLocaleProperty(SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(SemanticVocabulary.RDFS_COMMENT), lang);
-    }    
-    
-    
-    
+    }
+
+
+
 }

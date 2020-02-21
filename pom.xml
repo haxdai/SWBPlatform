@@ -41,9 +41,9 @@
         </repositories>
         <dependencies>
             <dependency>
-                <groupId>com.github.SemanticWebBuilder</groupId>
+                <groupId>org.semanticwb</groupId>
                 <artifactId>SWBBase</artifactId>
-                <version>master-SNAPSHOT</version>
+                <version>5.0</version>
             </dependency>
             <dependency>
                 <groupId>com.hp.hpl.jena</groupId>
@@ -141,9 +141,9 @@
         </build>
         <dependencies>
             <dependency>
-                <groupId>${project.groupId}</groupId>
+                <groupId>org.semanticwb</groupId>
                 <artifactId>SWBBase</artifactId>
-                <version>${project.version}</version>
+                <version>5.0</version>
             </dependency>
             <dependency>
                 <groupId>com.hp.hpl.jena</groupId>

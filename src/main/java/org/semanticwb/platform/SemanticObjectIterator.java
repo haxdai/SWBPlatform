@@ -25,84 +25,59 @@ package org.semanticwb.platform;
 import com.hp.hpl.jena.rdf.model.Resource;
 import com.hp.hpl.jena.rdf.model.Statement;
 import com.hp.hpl.jena.util.iterator.ClosableIterator;
+
 import java.util.Iterator;
 
 // TODO: Auto-generated Javadoc
+
 /**
- * The Class SemanticObjectIterator.
- * 
+ * Iterator implementation for {@link SemanticObject}.
+ *
  * @author Jei
  */
-public class SemanticObjectIterator implements Iterator
-{
-    
-    /** The it. */
+public class SemanticObjectIterator implements Iterator {
+
+    /**
+     * The iterator.
+     */
     Iterator it;
-    
-    /**
-     * Instantiates a new semantic object iterator.
-     * 
-     * @param it the it
-     */
-    public SemanticObjectIterator(Iterator it)
-    {
-        this.it=it;
-    }
 
     /**
-     * The main method.
-     * 
-     * @param args the command line arguments
+     * Constructor. Creates a new {@link SemanticObjectIterator}.
+     * @param it the iterator
      */
-    public static void main(String[] args) 
-    {
-        // TODO code application logic here
+    public SemanticObjectIterator(Iterator it) {
+        this.it = it;
     }
 
-    /* (non-Javadoc)
-     * @see java.util.Iterator#hasNext()
-     */
-    public boolean hasNext() 
-    {
-        boolean ret=it.hasNext();
-        if(!ret && it instanceof ClosableIterator)
-        {
-            ((ClosableIterator)it).close();
+    public boolean hasNext() {
+        boolean ret = it.hasNext();
+        if (!ret && it instanceof ClosableIterator) {
+            ((ClosableIterator) it).close();
         }
         return ret;
     }
 
-    /* (non-Javadoc)
-     * @see java.util.Iterator#next()
-     */
-    public Object next()
-    {
-        Object obj=it.next();
-        if(obj instanceof Resource)
-        {
-            return SemanticObject.createSemanticObject((Resource)obj);
-        }else if(obj instanceof Statement)
-        {
-            return SemanticObject.createSemanticObject(((Statement)obj).getResource());
+    public Object next() {
+        Object obj = it.next();
+        if (obj instanceof Resource) {
+            return SemanticObject.createSemanticObject((Resource) obj);
+        } else if (obj instanceof Statement) {
+            return SemanticObject.createSemanticObject(((Statement) obj).getResource());
         }
-        throw new AssertionError("No type found...:"+obj.getClass());
-    }
-    
-    /**
-     * Next semantic object.
-     * 
-     * @return the semantic object
-     */
-    public SemanticObject nextSemanticObject() 
-    {
-        return (SemanticObject)next();
+        throw new AssertionError("No type found...:" + obj.getClass());
     }
 
-    /* (non-Javadoc)
-     * @see java.util.Iterator#remove()
+    /**
+     * Next semantic object.
+     *
+     * @return the semantic object
      */
-    public void remove()
-    {
+    public SemanticObject nextSemanticObject() {
+        return (SemanticObject) next();
+    }
+
+    public void remove() {
         it.remove();
     }
 

@@ -20,33 +20,82 @@
  * dirección electrónica:
  *  http://www.semanticwebbuilder.org
  */
-package org.semanticwb.remotetriplestore;
+package org.semanticwb.rdf;
 
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.graph.TransactionHandler;
 import com.hp.hpl.jena.graph.Triple;
 
 /**
- *
+ * Interface to define RDF Graphs and operations.
  * @author javier.solis.g
  */
-public interface RGraph 
-{
-    public int getId();
-    
-    public void performAdd(Triple t, Long id);
+public interface RGraph {
+    /**
+     * Gets graph ID.
+     * @return Graph ID.
+     */
+    int getId();
 
-    public void performDelete(Triple t, Long id); 
-    
-    public TransactionHandler getTransactionHandler();
-    
-    public String encodeSubject(Node n);
-    public String encodeProperty(Node n);
-    public String encodeObject(Node n);
-    
-    public Node decodeSubject(String sub, String ext);
-    public Node decodeProperty(String sub, String ext);
-    public Node decodeObject(String sub, String ext);
-    
-    
+    /**
+     * Adds a triple to the graph.
+     * @param triple Triple to add.
+     * @param id Triple ID.
+     */
+    void performAdd(Triple triple, Long id);
+
+    /**
+     * Removes a triple from the graph.
+     * @param triple Triple to remove.
+     * @param id Triple ID.
+     */
+    void performDelete(Triple triple, Long id);
+
+    /**
+     * Gets the {@link TransactionHandler} for this Graph.
+     * @return TransactionHandler
+     */
+    TransactionHandler getTransactionHandler();
+
+    /**
+     * Encodes subject component of an RDF Node (subject, property, object).
+     * @param node RDF node
+     * @return Encoded subject component.
+     */
+    String encodeSubject(Node node);
+
+    /**
+     * Encodes property component of an RDF Node (subject, property, object).
+     * @param node RDF node
+     * @return Encoded property component
+     */
+    String encodeProperty(Node node);
+
+    /**
+     * Encodes object component of an RDF Node (subject, property, object).
+     * @param node RDF node
+     * @return Encoded object component
+     */
+    String encodeObject(Node node);
+
+    /**
+     * Decodes (from a String) the subject component for an RDF Node (subject, property, object).
+     * @param sub String to decode.
+     * @return Decoded subject component on RDF node.
+     */
+    Node decodeSubject(String sub, String ext);
+
+    /**
+     * Decodes (from a String) the property component for an RDF Node (subject, property, object).
+     * @param prop String to decode.
+     * @return Decoded subject component on RDF node.
+     */
+    Node decodeProperty(String prop, String ext);
+
+    /**
+     * Decodes (from a String) the object component for an RDF Node (subject, property, object).
+     * @param obj String to decode.
+     * @return Decoded subject component on RDF node.
+     */
+    Node decodeObject(String obj, String ext);
 }

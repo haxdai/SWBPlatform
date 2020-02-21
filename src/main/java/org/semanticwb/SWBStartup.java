@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -17,96 +17,99 @@
  * de la misma.
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
- * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ * dirección electrónica: http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb;
+
+import org.semanticwb.base.SWBAppObject;
 
 import java.io.InputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.List;
 import java.util.Properties;
-import org.semanticwb.base.SWBAppObject;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class SWBStartup.
- * 
+ * Class used to load Applications on SWB Startup.
  * @author serch
  */
 public class SWBStartup {
 
-/** The objs. */
-private ArrayList objs = null;
+    /**
+     * The objs.
+     */
+    private List objs = new ArrayList<>();
 
-/** The log. */
-private static Logger log=SWBUtils.getLogger(SWBStartup.class);
+    /**
+     * The log.
+     */
+    private static Logger LOG = SWBUtils.getLogger(SWBStartup.class);
+
+    /**
+     * @deprecated Use {@link #SWBStartup(List)}.
+     * Creates a new instance of WBStartup.
+     *
+     * @param objs the objs
+     */
+    @Deprecated
+    public SWBStartup(ArrayList objs) {
+        this.objs = objs;
+    }
 
     /**
      * Creates a new instance of WBStartup.
-     * 
+     *
      * @param objs the objs
      */
-    public SWBStartup(ArrayList objs)
-    {
+    public SWBStartup(List objs) {
         this.objs = objs;
     }
 
     /**
      * Load.
-     * 
+     *
      * @param name the name
      */
-    public void load(String name)
-    {
+    public void load(String name) {
         Properties startup = new Properties();
         InputStream in = getClass().getResourceAsStream("/" + name);
-        if (in == null) return;
-        try
-        {
+        if (in == null) {
+            return;
+        }
+
+        try {
             startup.load(in);
-        } catch (Exception e)
-        {
-            log.error("startup.properties file not found",e);
+        } catch (Exception e) {
+            LOG.error("startup.properties file not found", e);
         }
 
         Enumeration en = startup.keys();
-        while (en.hasMoreElements())
-        {
+        while (en.hasMoreElements()) {
             String objname = (String) en.nextElement();
-            log.event("Initializing " + objname + "...");
+            LOG.event("Initializing " + objname + "...");
             String clsname = startup.getProperty(objname);
-            try
-            {
+
+            try {
                 Class cls = Class.forName(clsname);
-                try
-                {
-                    Method getInstance = cls.getMethod("getInstance", (Class[])null);
-                    SWBAppObject obj = (SWBAppObject) getInstance.invoke(null, (Object[])null);
-                    if (obj != null)
-                    {
+                try {
+                    Method getInstance = cls.getMethod("getInstance", (Class[]) null);
+                    SWBAppObject obj = (SWBAppObject) getInstance.invoke(null, (Object[]) null);
+                    if (obj != null) {
                         objs.add(obj);
                     }
-
-                }catch(Exception e)
-                {
+                } catch (Exception e) {
                     SWBAppObject obj = (SWBAppObject) cls.newInstance();
-                    if (obj != null)
-                    {
+                    if (obj != null) {
                         objs.add(obj);
                         obj.init();
+                    } else {
+                        LOG.error("Initialization failed " + objname);
                     }
-                    else
-                        log.error("Initialization failed " + objname);
                 }
-
-
-            } catch (Exception e)
-            {
-                log.error("Startup load initialization error "+ objname ,e);
+            } catch (Exception e) {
+                LOG.error("Startup load initialization error " + objname, e);
             }
-
         }
     }
 }

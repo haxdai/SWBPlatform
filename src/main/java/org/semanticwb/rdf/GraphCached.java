@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -17,214 +17,188 @@
  * de la misma.
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
- * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ * dirección electrónica: http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.rdf;
 
-import com.hp.hpl.jena.graph.BulkUpdateHandler;
-import com.hp.hpl.jena.graph.Graph;
-import com.hp.hpl.jena.graph.GraphListener;
-import com.hp.hpl.jena.graph.TransactionHandler;
-import com.hp.hpl.jena.graph.Triple;
+import com.hp.hpl.jena.graph.*;
 import com.hp.hpl.jena.mem.faster.GraphMemFaster;
 import com.hp.hpl.jena.shared.PrefixMapping;
+
 import java.util.Iterator;
 import java.util.List;
 
-// TODO: Auto-generated Javadoc
 /**
- * The Class GraphCached.
- * 
+ * Implementation of an in memory cached Graph.
  * @author javier.solis
  */
-public class GraphCached extends GraphMemFaster implements GraphListener
-{
-
-    /** The base. */
-    private Graph base=null;           //Modelo base
+public class GraphCached extends GraphMemFaster implements GraphListener {
 
     /**
-     * Instantiates a new graph cached.
-     * 
-     * @param base the base
+     * The base model.
      */
-    public GraphCached(Graph base)
-    {
+    private Graph base;
+
+    /**
+     * Constructor. Creates a new {@link GraphCached} using <code>base</code>.
+     * @param base the base model.
+     */
+    public GraphCached(Graph base) {
         super();
         super.getBulkUpdateHandler().add(base);
-        this.base=base;
+        this.base = base;
         getEventManager().register(this);
     }
 
     /**
-     * Notify add triple.
-     * 
-     * @param g the g
-     * @param t the t
+     * Notifies a triple addition.
+     *
+     * @param g the graph
+     * @param t the triple
      */
     @Override
     public void notifyAddTriple(Graph g, Triple t) {
-        //System.out.println("notifyAddTriple");
         base.add(t);
     }
 
     /**
-     * Notify add array.
-     * 
-     * @param g the g
-     * @param triples the triples
+     * Notifies a triple array addition.
+     *
+     * @param g the graph
+     * @param triples the triples array
      */
     @Override
     public void notifyAddArray(Graph g, Triple[] triples) {
-        //System.out.println("notifyAddArray");
         base.getBulkUpdateHandler().add(triples);
     }
 
     /**
-     * Notify add list.
-     * 
-     * @param g the g
-     * @param triples the triples
+     * Notifies a triple list addition.
+     *
+     * @param g the graph
+     * @param triples the triple list
      */
     @Override
     public void notifyAddList(Graph g, List<Triple> triples) {
-        //System.out.println("notifyAddList");
         base.getBulkUpdateHandler().add(triples);
     }
 
     /**
-     * Notify add iterator.
-     * 
-     * @param g the g
-     * @param it the it
+     * Notifies a triple iterator addition.
+     *
+     * @param g the graph
+     * @param it the triple iterator
      */
     @Override
     public void notifyAddIterator(Graph g, Iterator<Triple> it) {
-        //System.out.println("notifyAddIterator");
         base.getBulkUpdateHandler().add(it);
     }
 
     /**
-     * Notify add graph.
-     * 
-     * @param g the g
-     * @param added the added
+     * Notifies a graph addition.
+     *
+     * @param g the graph
+     * @param added the added graph
      */
     @Override
     public void notifyAddGraph(Graph g, Graph added) {
-        //System.out.println("notifyAddGraph");
         base.getBulkUpdateHandler().add(added);
     }
 
     /**
-     * Notify delete triple.
-     * 
-     * @param g the g
-     * @param t the t
+     * Notifies a triple deletion.
+     *
+     * @param g the graph
+     * @param t the triple
      */
     @Override
     public void notifyDeleteTriple(Graph g, Triple t) {
-        //System.out.println("notifyDeleteTriple");
         base.delete(t);
     }
 
     /**
-     * Notify delete list.
-     * 
-     * @param g the g
-     * @param L the l
+     * Notifies a triple list deletion.
+     *
+     * @param g the graph
+     * @param triples the triple list
      */
     @Override
-    public void notifyDeleteList(Graph g, List<Triple> L) {
-        //System.out.println("notifyDeleteList");
-        base.getBulkUpdateHandler().delete(L);
-    }
-
-    /**
-     * Notify delete array.
-     * 
-     * @param g the g
-     * @param triples the triples
-     */
-    @Override
-    public void notifyDeleteArray(Graph g, Triple[] triples) {
-        //System.out.println("notifyDeleteArray");
+    public void notifyDeleteList(Graph g, List<Triple> triples) {
         base.getBulkUpdateHandler().delete(triples);
     }
 
     /**
-     * Notify delete iterator.
-     * 
-     * @param g the g
-     * @param it the it
+     * Notifies a triple array deletion.
+     *
+     * @param g the graph
+     * @param triples the triple
+     */
+    @Override
+    public void notifyDeleteArray(Graph g, Triple[] triples) {
+        base.getBulkUpdateHandler().delete(triples);
+    }
+
+    /**
+     * Notifies a triple iterator deletion.
+     *
+     * @param g the graph
+     * @param it the triple iterator
      */
     @Override
     public void notifyDeleteIterator(Graph g, Iterator<Triple> it) {
-        //System.out.println("notifyDeleteIterator");
         base.getBulkUpdateHandler().delete(it);
     }
 
     /**
-     * Notify delete graph.
-     * 
-     * @param g the g
-     * @param removed the removed
+     * Notifies a graph deletion.
+     *
+     * @param g the graph
+     * @param removed the graph to remove
      */
     @Override
     public void notifyDeleteGraph(Graph g, Graph removed) {
-        //System.out.println("notifyDeleteGraph");
         base.getBulkUpdateHandler().delete(removed);
     }
 
     /**
-     * Notify event.
-     * 
-     * @param source the source
-     * @param value the value
+     * Notifies a generic event.
+     *
+     * @param source the source of the event
+     * @param value  the changed value
      */
     @Override
     public void notifyEvent(Graph source, Object value) {
-        //System.out.println("notifyEvent");
     }
 
     /**
      * Gets the prefix mapping.
-     * 
+     *
      * @return the prefix mapping
      */
     @Override
     public PrefixMapping getPrefixMapping() {
         return base.getPrefixMapping();
     }
-    
-    public Graph getGraphBase()
-    {
+
+    public Graph getGraphBase() {
         return base;
     }
-    
-//    static long c=0;
-//    @Override
-//    protected ExtendedIterator<Triple> graphBaseFind(Node s, Node p, Node o)
-//    {
-//        System.out.println(c+" s:"+s+" p:"+p+" o:"+o);
-//        c++;
-//        return super.graphBaseFind(s, p, o);
-//    }
 
     @Override
-    public TransactionHandler getTransactionHandler()
-    {
-        TransactionHandler ret=base.getTransactionHandler();
-        if(ret==null)ret=super.getTransactionHandler(); //To change body of generated methods, choose Tools | Templates.
+    public TransactionHandler getTransactionHandler() {
+        TransactionHandler ret = base.getTransactionHandler();
+        if (ret == null) {
+            ret = super.getTransactionHandler();
+        }
         return ret;
     }
 
     @Override
-    public BulkUpdateHandler getBulkUpdateHandler()
-    {
-        BulkUpdateHandler ret=base.getBulkUpdateHandler();
-        if(ret==null)ret=super.getBulkUpdateHandler(); //To change body of generated methods, choose Tools | Templates.
+    public BulkUpdateHandler getBulkUpdateHandler() {
+        BulkUpdateHandler ret = base.getBulkUpdateHandler();
+        if (ret == null) {
+            ret = super.getBulkUpdateHandler();
+        }
         return ret;
     }
 }

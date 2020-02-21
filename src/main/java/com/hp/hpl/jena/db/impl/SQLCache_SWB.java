@@ -1,34 +1,28 @@
-/**  
+/**
  * SemanticWebBuilder es una plataforma para el desarrollo de portales y aplicaciones de integración,
  * colaboración y conocimiento, que gracias al uso de tecnología semántica puede generar contextos de
  * información alrededor de algún tema de interés o bien integrar información y aplicaciones de diferentes
  * fuentes, donde a la información se le asigna un significado, de forma que pueda ser interpretada y
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
- *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * <p>
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
  * del SemanticWebBuilder 4.0.
- *
+ * <p>
  * INFOTEC no otorga garantía sobre SemanticWebBuilder, de ninguna especie y naturaleza, ni implícita ni explícita,
  * siendo usted completamente responsable de la utilización que le dé y asumiendo la totalidad de los riesgos que puedan derivar
  * de la misma.
- *
+ * <p>
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ * http://www.semanticwebbuilder.org.mx
  **/
-/*
- * To change this template, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package com.hp.hpl.jena.db.impl;
 
-import com.hp.hpl.jena.db.IDBConnection;
-import com.hp.hpl.jena.db.RDFRDBException;
-import com.hp.hpl.jena.shared.JenaException;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -38,38 +32,33 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ConcurrentHashMap;
+
 import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.SWBUtils;
 import org.semanticwb.base.db.AutoConnection;
-import org.semanticwb.base.db.PoolConnection;
 import org.semanticwb.platform.ThreadObserver;
 
-// TODO: Auto-generated Javadoc
+import com.hp.hpl.jena.db.IDBConnection;
+import com.hp.hpl.jena.db.RDFRDBException;
+import com.hp.hpl.jena.shared.JenaException;
+
 /**
  * The Class SQLCache_SWB.
- * 
- * @author javier.solis
+ *
+ * @author Javier Solís {javier.solis}
  */
-public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
+public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver {
 
     /** The log. */
-    private static Logger log = SWBUtils.getLogger(SQLCache_SWB.class);
+    private static final Logger log = SWBUtils.getLogger(SQLCache_SWB.class);
 
-    /**
-     * The arr.
-     * 
-     * @param sqlFile the sql file
-     * @param defaultOps the default ops
-     * @param connection the connection
-     * @param idType the id type
-     * @throws IOException Signals that an I/O exception has occurred.
-     */
-    //private ArrayList arr=new ArrayList();
+    ConcurrentHashMap<Long, Connection> thcon = new ConcurrentHashMap<>();
+
     /**
      * Constructor. Creates a new cache sql statements for interfacing to
      * a specific database.
-     * 
+     *
      * @param sqlFile the name of the file of sql statements to load, this is
      * loaded from the classpath.
      * @param defaultOps Properties table which provides the default
@@ -85,64 +74,51 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
         SWBPlatform.createInstance().registerThreadObserver(this);
     }
 
-    ConcurrentHashMap<Long, Connection> thcon=new ConcurrentHashMap();
-
-    private Connection getThreadConnection()
-    {
-        long th=Thread.currentThread().getId();
-        //System.out.println("getThreadConnection:"+th+" "+Thread.currentThread().getName());
-        Connection con=thcon.get(th);
-        if(con==null)
-        {
-            String name=Thread.currentThread().getName();
-            if(!name.equals(SWBPlatform.getThreadName()))
-            {
-                con=SWBUtils.DB.getDefaultConnection(name);
-            }else
-            {
-                con=SWBUtils.DB.getDefaultPool().newAutoConnection();
+    private Connection getThreadConnection() {
+        long th = Thread.currentThread().getId();
+        Connection con = thcon.get(th);
+        if (con == null) {
+            String name = Thread.currentThread().getName();
+            if (!name.equals(SWBPlatform.getThreadName())) {
+                con = SWBUtils.DB.getDefaultConnection(name);
+            } else {
+                con = SWBUtils.DB.getDefaultPool().newAutoConnection();
             }
             thcon.put(th, con);
         }
         return con;
     }
 
-    private void returnThreadConnection(Connection con)
-    {
+    private void returnThreadConnection(Connection con) {
         //Nada que hacer
-        //long th=Thread.currentThread().getId();
-        //System.out.println("returnThreadConnection:"+th);
     }
 
-    private void closeThreadConnection()
-    {
-        long th=Thread.currentThread().getId();
-        //System.out.println("closeThreadConnection:"+th);
-        Connection con=thcon.remove(th);
-        try
-        {
-            if(con!=null)
-            {
-                if(con instanceof AutoConnection)
-                {
-                    log.error("Autoconnection is closing in thread:"+Thread.currentThread().getName());
+    private void closeThreadConnection() {
+        long th = Thread.currentThread().getId();
+        Connection con = thcon.remove(th);
+        try {
+            if (con != null) {
+                if (con instanceof AutoConnection) {
+                    log.error("Autoconnection is closing in thread:" + Thread.currentThread().getName());
                 }
                 con.close();
             }
-        }catch(Exception e){log.error(e);}
+        } catch (Exception e) {
+            log.error(e);
+        }
     }
 
 
     /**
      * Gets the stack trace.
-     * 
+     *
      * @return the stack trace
      */
     String getStackTrace() {
-        StringBuffer ret = new StringBuffer();
-        StackTraceElement ste[] = Thread.currentThread().getStackTrace();
-        for (int i = 0; i < ste.length; i++) {
-            ret.append(ste[i].toString() + "\n");
+        StringBuilder ret = new StringBuilder();
+        StackTraceElement [] ste = Thread.currentThread().getStackTrace();
+        for (StackTraceElement element : ste) {
+            ret.append(element.toString() + "\n");
         }
         return ret.toString();
     }
@@ -162,12 +138,7 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
         if (m_connection == null) {
             return null;
         }
-//        if(sql.indexOf("SWB_LONG_LIT")>0)
-//        {
-//            System.out.println("new con:" + sql);
-//            return getConnection().prepareStatement(sql);
-//        }
-        //Connection con = SWBUtils.DB.getDefaultConnection();
+
         Connection con = getThreadConnection();
         return con.prepareStatement(sql);
     }
@@ -192,9 +163,6 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
         return doPrepareSQLStatement(sql);
     }
 
-    /* (non-Javadoc)
-     * @see com.hp.hpl.jena.db.impl.SQLCache#getPreparedSQLStatement(java.lang.String, java.lang.String[])
-     */
     /**
      * Gets the prepared sql statement.
      *
@@ -205,9 +173,8 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
      */
     @Override
     public PreparedStatement getPreparedSQLStatement(String opname, String[] attr) throws SQLException {
-        /* TODO extended calling format or statement format to support different
-         * result sets and conconcurrency modes.
-         */
+        //TODO extended calling format or statement format to support different result sets and conconcurrency modes.
+
         PreparedStatement ps = null;
         if (m_connection == null || opname == null) {
             return null;
@@ -243,7 +210,7 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
                 throw new SQLException("No SQL defined for operation: " + opname);
             }
             if (psl == null && CACHE_PREPARED_STATEMENTS) {
-                psl = new LinkedList<PreparedStatement>();
+                psl = new LinkedList<>();
                 m_preparedStatements.put(aop, psl);
             }
             ps = doPrepareSQLStatement(sql);
@@ -268,14 +235,10 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
      */
     @Override
     public void runSQLGroup(String opname, String[] attr) throws SQLException {
-        String op = null;
-        SQLException eignore = null;
-
-        //Connection con = SWBUtils.DB.getDefaultConnection();
+        String op;
         Connection con = getThreadConnection();
         java.sql.Statement sql = con.createStatement();
-        //java.sql.Statement sql = getConnection().createStatement();
-        Iterator ops = getSQLStatementGroup(opname).iterator();
+        Iterator<String> ops = getSQLStatementGroup(opname).iterator();
 
         try {
             int attrCnt = attr == null ? 0 : attr.length;
@@ -283,7 +246,7 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
                 throw new RDFRDBException("Too many parameters");
             }
             while (ops.hasNext()) {
-                op = (String) ops.next();
+                op = ops.next();
                 if (attrCnt > 0) {
                     op = substitute(op, "${a}", attr[0]);
                 }
@@ -302,21 +265,14 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
                 if (attrCnt > 5) {
                     op = substitute(op, "${f}", attr[5]);
                 }
-                try {
-                    //System.out.println("SQL : "+op) ;
-                    sql.execute(op);
-                } catch (SQLException e) {
-                    // This is debugging legacy, exception is still reported at the end
-                    //System.out.println("SQL failure: " + op + ": " + e); System.out.flush() ;
-                    throw e;
-                }
+                sql.execute(op);
             }
         } finally {
             try {
                 sql.close();
-                //con.close();
                 returnThreadConnection(con);
             } catch (SQLException e2) {
+                log.error(e2);
             }
         }
     }
@@ -326,7 +282,7 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
      * another caller. Any close problems logged rather than raising exception
      * so that iterator close() operations can be silent so that they can meet
      * the ClosableIterator signature.
-     * 
+     *
      * @param ps the ps
      */
     @Override
@@ -334,16 +290,12 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
         try {
             Connection con = ps.getConnection();
             ps.close();
-            //System.out.println("close st:" + ps);
             if (con != getConnection()) {
                 returnThreadConnection(con);
-                //con.close();
-                //System.out.println("closing connection...");
             }
         } catch (SQLException e) {
             log.warn("Problem discarded prepared statement", e);
         }
-        return;
     }
 
     /**
@@ -374,8 +326,7 @@ public class SQLCache_SWB extends SQLCache_SWBBase implements ThreadObserver{
         }
     }
 
-    public void notifyEnd()
-    {
+    public void notifyEnd() {
         closeThreadConnection();
     }
 }

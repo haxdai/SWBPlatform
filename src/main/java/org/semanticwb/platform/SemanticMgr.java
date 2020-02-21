@@ -6,7 +6,7 @@
  * procesada por personas y/o sistemas, es una creación original del Fondo de Información y Documentación
  * para la Industria INFOTEC, cuyo registro se encuentra actualmente en trámite.
  *
- * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público (‘open source’),
+ * INFOTEC pone a su disposición la herramienta SemanticWebBuilder a través de su licenciamiento abierto al público ('open source'),
  * en virtud del cual, usted podrá usarlo en las mismas condiciones con que INFOTEC lo ha diseñado y puesto a su disposición;
  * aprender de él; distribuirlo a terceros; acceder a su código fuente y modificarlo, y combinarlo o enlazarlo con otro software,
  * todo ello de conformidad con los términos y condiciones de la LICENCIA ABIERTA AL PÚBLICO que otorga INFOTEC para la utilización
@@ -18,7 +18,7 @@
  *
  * Si usted tiene cualquier duda o comentario sobre SemanticWebBuilder, INFOTEC pone a su disposición la siguiente
  * dirección electrónica:
- *  http://www.semanticwebbuilder.org
+ *  http://www.semanticwebbuilder.org.mx
  */
 package org.semanticwb.platform;
 
@@ -26,28 +26,10 @@ import com.hp.hpl.jena.db.ModelRDB;
 import com.hp.hpl.jena.graph.Node;
 import com.hp.hpl.jena.ontology.OntModel;
 import com.hp.hpl.jena.ontology.OntModelSpec;
-import com.hp.hpl.jena.rdf.model.ModelFactory;
-import com.hp.hpl.jena.rdf.model.Model;
-import com.hp.hpl.jena.rdf.model.NsIterator;
-import com.hp.hpl.jena.rdf.model.Resource;
-import com.hp.hpl.jena.rdf.model.Statement;
-import com.hp.hpl.jena.rdf.model.StmtIterator;
+import com.hp.hpl.jena.rdf.model.*;
 import com.hp.hpl.jena.rdf.model.impl.ModelCom;
 import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.vocabulary.RDF;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map.Entry;
-import java.util.Set;
-import java.util.StringTokenizer;
 import org.semanticwb.Logger;
 import org.semanticwb.SWBPlatform;
 import org.semanticwb.SWBUtils;
@@ -55,114 +37,90 @@ import org.semanticwb.rdf.AbstractStore;
 import org.semanticwb.rdf.GraphCached;
 import org.semanticwb.rdf.RemoteGraph;
 
-// TODO: Auto-generated Javadoc
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.*;
+import java.util.Map.Entry;
+
 /**
- * The Class SemanticMgr.
- * 
+ * Class responsible for managing {@link SemanticObject}s (RDF resources) and related ontology.
+ *
  * @author Jei
  */
-public class SemanticMgr implements SWBInstanceObject
-{
-    
-    /** The NULL. */
-    private static String NULL="__NULL__";
-
-    /** The use cache. */
-    private boolean tripleCache=false;
-    
-    private boolean semobjCache=false;
-    private ArrayList<String> semobjModelCache=new ArrayList();
-    
-    private boolean userRepCache=false;
-    
-    private ClassLoader classLoader=getClass().getClassLoader();
-
+public class SemanticMgr implements SWBInstanceObject {
     /**
-     * The Enum ModelSchema.
+     * Supported Ontology Model Specifications.
+     * <li>{@link #OWL_MEM} - In memory OWL model, no reasoning</li>
+     * <li>{@link #OWL_MEM_TRANS_INF} - In memory OWL model, transitive inference</li>
+     * <li>{@link #OWL_LITE_MEM_RDFS_INF} - In memory OWL-LITE model, RDFS inferencer</li>
+     * <li>{@link #OWL_MEM_MINI_RULE_INF} - In memory OWL model, mini OWL rules inference</li>
+     * <li>{@link #RDFS_MEM_RDFS_INF} - In memory RDFS model, RDFS inferencer</li>
+     * <li>{@link #DAML_MEM_RDFS_INF} - In memory DAML model, RDFS inferencer</li>
+     * <li>{@link #OWL_DL_MEM_RDFS_INF} - In memory OWL-DL model, RDFS inferencer</li>
+     * <li>{@link #OWL_MEM_RDFS_INF} - In memory OWL model, RDFS inferencer</li>
      */
     public enum ModelSchema {
-
-        /** The OW l_ me m_. */
         OWL_MEM,
-        /** The OW l_ me m_ tran s_ inf. */
         OWL_MEM_TRANS_INF,
-        /** The OW l_ lit e_ me m_ rdf s_ inf. */
         OWL_LITE_MEM_RDFS_INF,
-        /** The OW l_ me m_ min i_ rul e_ inf. */
         OWL_MEM_MINI_RULE_INF,
-        /** The RDF s_ me m_ rdf s_ inf. */
         RDFS_MEM_RDFS_INF,
-        /** The DAM l_ me m_ rdf s_ inf. */
         DAML_MEM_RDFS_INF,
-        /** The OW l_ d l_ me m_ rdf s_ inf. */
         OWL_DL_MEM_RDFS_INF,
-        
-        /** The OW l_ me m_ rdf s_ inf. */
-        OWL_MEM_RDFS_INF;
+        OWL_MEM_RDFS_INF
     }
-    /** The model schema. */
+
+    private boolean tripleCache = false;
+    private boolean semobjCache = false;
+    private ArrayList<String> semobjModelCache = new ArrayList<>();
+    private boolean userRepCache = false;
+    private ClassLoader classLoader = getClass().getClassLoader();
     private static ModelSchema modelSchema = ModelSchema.OWL_MEM_TRANS_INF;
+    private static Logger log = SWBUtils.getLogger(SemanticMgr.class);
+
+    //TODO: Move this constants to SWBAproperties Class in SWBPortal project
+    public static final String SWBAdmin = "SWBAdmin";
+    public static final String SWBAdminURI = "http://www.semanticwb.org/SWBAdmin#";
+    public static final String SWBOntEdit = "SWBOntEdit";
+
+    private SemanticOntology ontology;
+    private SemanticOntology schema;
+    /**
+     * Map of {@link SemanticModel}s arranged by name.
+     */
+    private HashMap<String, SemanticModel> namedModels = null;
 
     /**
-     * Sets the schema model.
-     * 
-     * @param modelSchema the new schema model
+     * Map of {@link SemanticModel}s arranged by namespace.
+     */
+    private HashMap<String, SemanticModel> namespacedModels = null;
+    private HashMap<Model, SemanticModel> internalModels = null;
+    private HashMap<String, SemanticModel> baseModels = null;
+    private SemanticVocabulary vocabulary;
+    private List<SemanticObserver> modelObservers = null;
+    private List<SemanticTSObserver> tsObservers = null;
+    private CodePackage codepackage = null;
+    private AbstractStore store = null;
+
+    /**
+     * Sets Model specification to use by the {@link SemanticMgr}.
+     * @param modelSchema Enum value for the Schema.
      */
     public static void setSchemaModel(ModelSchema modelSchema) {
         SemanticMgr.modelSchema = modelSchema;
     }
-    /** The log. */
-    private static Logger log = SWBUtils.getLogger(SemanticMgr.class);
-    /** The Constant SWBSystem. */
-    public final static String SWBSystem = "SWBSystem";
-    /** The Constant SWBAdmin. */
-    public final static String SWBAdmin = "SWBAdmin";
-    public final static String SWBAdminURI = "http://www.semanticwb.org/SWBAdmin#";
-    /** The Constant SWBOntEdit. */
-    public final static String SWBOntEdit = "SWBOntEdit";
-    /** The m_ontology. */
-    private SemanticOntology m_ontology;
-    //private SemanticModel m_system;
-    //private HashMap<String,SemanticModel> m_schemas;
-    /** The m_schema. */
-    private SemanticOntology m_schema;
-    
-    /** The models. */
-    private HashMap<String, SemanticModel> m_models = null;
-    /** The namespace related models. */
-    private HashMap<String, SemanticModel> m_nsmodels = null;
-    /** The interenal related models. */
-    private HashMap<Model, SemanticModel> m_imodels = null;
-    
-    /** The Base Models. */
-    private HashMap<String, SemanticModel> m_bmodels = null;
-
-    /** The vocabulary. */
-    private SemanticVocabulary vocabulary;
-    /** The m_observers. */
-    private List<SemanticObserver> m_observers = null;
-    
-    private List<SemanticTSObserver> m_tsobservers = null;
-    
-    
-    /** The codepkg. */
-    private CodePackage codepkg = null;
-
-    /** The Store **/
-    private AbstractStore store=null;
-
-    /* (non-Javadoc)
-     * @see org.semanticwb.platform.SWBInstanceObject#init()
-     */
 
     /**
-     * Gets the model spec.
-     * 
-     * @return the model spec
+     * Gets the Model Specification of the {@link SemanticMgr}.
+     * @return Model Specification.
      */
-    public OntModelSpec getModelSpec()
-    {
-        OntModelSpec modelSpec = OntModelSpec.OWL_MEM_TRANS_INF;
+    public OntModelSpec getModelSpec() {
+        OntModelSpec modelSpec;
+
         //Create Schema
         switch (modelSchema) {
             case OWL_MEM:
@@ -203,210 +161,229 @@ public class SemanticMgr implements SWBInstanceObject
         return modelSpec;
     }
 
-
-    /* (non-Javadoc)
-     * @see org.semanticwb.platform.SWBInstanceObject#init()
-     */
     public void init() {
         log.event("Initializing SemanticMgr...");
+        codepackage = new CodePackage();
+        namedModels = new HashMap<>();
+        namespacedModels = new HashMap<>();
+        internalModels = new HashMap<>();   //Arreglo de RDFModel
+        baseModels = new HashMap<>();       //Arreglo de RDFModel
+        modelObservers = Collections.synchronizedList(new ArrayList<>());
+        tsObservers = Collections.synchronizedList(new ArrayList<>());
 
-        codepkg = new CodePackage();
 
-        m_models = new HashMap();                     //Arreglo de SemanticModel por name
-        m_nsmodels = new HashMap();                   //Arreglo de SemanticModel por NS
-        m_imodels = new HashMap();                    //Arreglo de RDFModel
-        m_bmodels = new HashMap();                    //Arreglo de RDFModel
-        //m_schemas=new HashMap();
-        m_observers = Collections.synchronizedList(new ArrayList());
-        m_tsobservers = Collections.synchronizedList(new ArrayList());
-
-        
         OntModelSpec modelSpec = getModelSpec();
 
         //Create Schema
-        m_schema = new SemanticOntology("SWBSquema", ModelFactory.createOntologyModel(modelSpec));
-        //System.out.println("p2");
+        schema = new SemanticOntology("SWBSquema", ModelFactory.createOntologyModel(modelSpec));
 
         //Create Ontology
-        m_ontology = new SemanticOntology("SWBOntology", ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_TRANS_INF));
-        //m_ontology = new SemanticOntology("SWBOntology",ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_RDFS_INF));
-        //System.out.println("p3");
+        ontology = new SemanticOntology("SWBOntology",
+                ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_TRANS_INF));
 
         //Agrega ontologia a los modelos
-        SemanticModel ontModel = new SemanticModel("swb_ontology", m_ontology.getRDFOntModel());
-        m_imodels.put(ontModel.getRDFModel(), ontModel);
-        //System.out.println("p4");
+        SemanticModel ontModel = new SemanticModel("swb_ontology", ontology.getRDFOntModel());
+        internalModels.put(ontModel.getRDFModel(), ontModel);
 
-        //Agrega squema a los modelos
-        SemanticModel ontSchemaModel = new SemanticModel("swb_schema", m_schema.getRDFOntModel());
+        //Agrega esquema a los modelos
+        SemanticModel ontSchemaModel = new SemanticModel("swb_schema", schema.getRDFOntModel());
+
         //para busqueda inversa
-        m_imodels.put(ontSchemaModel.getRDFModel(), ontSchemaModel);
-        //System.out.println("p5");
+        internalModels.put(ontSchemaModel.getRDFModel(), ontSchemaModel);
     }
 
     /**
+     * @deprecated Use {@link #initializeTripleStore(boolean, boolean, String, boolean, String)}
+     * getting parameters from configuration files or environment variables.
+     *
      * Initialize db.
      */
-    public void initializeDB() 
-    {
-        tripleCache=Boolean.parseBoolean(SWBPlatform.getEnv("swb/tripleFullCache","false"));
-        semobjCache=Boolean.parseBoolean(SWBPlatform.getEnv("swb/semanticObjectFullCache","true"));
-        String t_semobjModelCache=SWBPlatform.getEnv("swb/semanticObjectModelsCache",null);
-        if(t_semobjModelCache!=null)
-        {
-            StringTokenizer st=new StringTokenizer(t_semobjModelCache," ,;");
-            while (st.hasMoreTokens())
-            {
+    @Deprecated
+    public void initializeDB() {
+        initializeTripleStore(Boolean.parseBoolean(SWBPlatform.getEnv("swb/tripleFullCache", "false")),
+                Boolean.parseBoolean(SWBPlatform.getEnv("swb/semanticObjectFullCache", "true")),
+                SWBPlatform.getEnv("swb/semanticObjectModelsCache", null),
+                Boolean.parseBoolean(SWBPlatform.getEnv("swb/userRepositoryFullCache", "false")),
+                SWBPlatform.getEnv("swb/tripleStoreClass", "org.semanticwb.store.leveldb.SWBTSLevelDB"));
+    }
+
+    /**
+     * Initializes {@link SemanticMgr}'s underlying Triple Store using default configuration.
+     */
+    public void initializeTripleStore() {
+        initializeTripleStore(false, true, null,
+                false, "org.semanticwb.store.leveldb.SWBTSLevelDB");
+    }
+
+    /**
+     * Initializes {@link SemanticMgr}'s underlying Triple Store.
+     * @param triplesFullCache              whether to use full cache of triples.
+     * @param semObjectsFullCache           whether to use full cache of semantic objects.
+     * @param cachedSemanticObjectModels    String with a delimited list of cached SemanticModels.
+     * @param userRepositoryFullCache       whether to use full cache of user repository model.
+     * @param genericTripleStoreClass       Qualified class name of TripleStore implementation.
+     *                                      Used when persistence type is {@link SWBPlatform#PRESIST_TYPE_SWBTSGEN}.
+     */
+    public void initializeTripleStore(boolean triplesFullCache, boolean semObjectsFullCache,
+                                      String cachedSemanticObjectModels, boolean userRepositoryFullCache,
+                                      String genericTripleStoreClass) {
+
+        tripleCache = triplesFullCache;
+        semobjCache = semObjectsFullCache;
+        userRepCache = userRepositoryFullCache;
+        log.event("TripleFullCache:" + tripleCache);
+        log.event("SemanticObjectFullCache:" + semobjCache);
+
+        if (cachedSemanticObjectModels != null) {
+            log.event("SemanticObjectModelsCache:" + cachedSemanticObjectModels);
+            StringTokenizer st = new StringTokenizer(cachedSemanticObjectModels, " ,;");
+            while (st.hasMoreTokens()) {
                 semobjModelCache.add(st.nextToken());
             }
         }
-        
-        userRepCache=Boolean.parseBoolean(SWBPlatform.getEnv("swb/userRepositoryFullCache","false"));
-        log.event("TripleFullCache:"+tripleCache);
-        log.event("SemanticObjectFullCache:"+semobjCache);
-        if(t_semobjModelCache!=null)
-        {
-            log.event("SemanticObjectModelsCache:"+t_semobjModelCache);
-        }        
 
-        String clsname="org.semanticwb.rdf.RDBStore";
-        if (SWBPlatform.isSDB()) 
-        {
-            clsname="org.semanticwb.rdf.SDBStore";
-        } else if (SWBPlatform.isTDB())
-        {
-            clsname="org.semanticwb.rdf.TDBStore";
-        } else if (SWBPlatform.isBigdata())
-        {
-            clsname="org.semanticwb.bigdata.BigdataStore";
-        } else if (SWBPlatform.isRemotePlatform())
-        {
-            clsname="org.semanticwb.remotetriplestore.SWBRemoteTripleStore";
-        } else if (SWBPlatform.isSWBTripleStore())
-        {
-            clsname="org.semanticwb.triplestore.SWBTripleStore";
-        } else if (SWBPlatform.isSWBTripleStoreExt())
-        {
-            clsname="org.semanticwb.triplestore.ext.SWBTripleStoreExt";
-        } else if (SWBPlatform.isSWBTSMongo())
-        {
-            clsname="org.semanticwb.triplestore.mongo.SWBTSMongo";
-        } else if (SWBPlatform.isSWBTSMongoE())
-        {
-            clsname="org.semanticwb.triplestore.mongo.ext.SWBTSMongoExt";
-        } else if (SWBPlatform.isVirtuoso())
-        {
-            clsname="org.semanticwb.triplestore.virtuoso.SWBTSVirtuoso";
-        } else if (SWBPlatform.isSWBTSGen())
-        {
-            clsname=SWBPlatform.getEnv("swb/tripleStoreClass","org.semanticwb.store.leveldb.SWBTSLevelDB");
-        } else if (SWBPlatform.isSWBTSGemFire())
-        {
-            clsname="org.semanticwb.triplestore.gemfire.SWBTSGemFire";
+        String clsname = "org.semanticwb.rdf.RDBStore";
+        if (SWBPlatform.isSDB()) {
+            clsname = "org.semanticwb.rdf.SDBStore";
+        } else if (SWBPlatform.isTDB()) {
+            clsname = "org.semanticwb.rdf.TDBStore";
+        } else if (SWBPlatform.isBigdata()) {
+            clsname = "org.semanticwb.bigdata.BigdataStore";
+        } else if (SWBPlatform.isRemotePlatform()) {
+            clsname = "org.semanticwb.remotetriplestore.SWBRemoteTripleStore";
+        } else if (SWBPlatform.isSWBTripleStore()) {
+            clsname = "org.semanticwb.triplestore.SWBTripleStore";
+        } else if (SWBPlatform.isSWBTripleStoreExt()) {
+            clsname = "org.semanticwb.triplestore.ext.SWBTripleStoreExt";
+        } else if (SWBPlatform.isSWBTSMongo()) {
+            clsname = "org.semanticwb.triplestore.mongo.SWBTSMongo";
+        } else if (SWBPlatform.isSWBTSMongoE()) {
+            clsname = "org.semanticwb.triplestore.mongo.ext.SWBTSMongoExt";
+        } else if (SWBPlatform.isVirtuoso()) {
+            clsname = "org.semanticwb.triplestore.virtuoso.SWBTSVirtuoso";
+        } else if (SWBPlatform.isSWBTSGen()) {
+            clsname = genericTripleStoreClass;
+        } else if (SWBPlatform.isSWBTSGemFire()) {
+            clsname = "org.semanticwb.triplestore.gemfire.SWBTSGemFire";
         }
-        
-        log.event("TripleStoreClass:"+clsname);
 
-        try
-        {
-            Class cls=Class.forName(clsname);
-            store=(AbstractStore)cls.newInstance();
-        }catch(Exception e){log.error("Error Initializing Store",e);}
-        //System.out.println("End initializeDB");
+        log.event("TripleStoreClass:" + clsname);
+
+        try {
+            Class cls = Class.forName(clsname);
+            store = (AbstractStore) cls.newInstance();
+        } catch (Exception e) {
+            log.error("Error Initializing Store", e);
+        }
+
         store.init();
     }
 
     /**
-     * Adds the base ontology.
-     * 
-     * @param owlPath the owl path
+     * Loads an ontology model from a path or URI and adds it to the {@link SemanticMgr}'s base ontologies.
+     * @param filePathOrURI the ontology file path or URI.
      * @return the semantic model
      */
-    public SemanticModel addBaseOntology(String owlPath) 
-    {
-        //System.out.println("BaseOntology:"+owlPath);
-        log.event("BaseOntology:"+owlPath);
-        Model model = SWBPlatform.getSemanticMgr().loadRDFFileModel(owlPath);
-        SemanticModel smodel = new SemanticModel(new File(owlPath).getName(), model);
-        getSchema().addOWLModel(owlPath,smodel, false);
-        getOntology().addOWLModel(owlPath,smodel, false);
-        m_bmodels.put(smodel.getName(), smodel);
+    public SemanticModel addBaseOntology(String filePathOrURI) {
+        log.event("Adding base Ontology: " + filePathOrURI);
 
-        //agregar todos los NS del schema
-        Iterator it = smodel.getRDFModel().getNsPrefixMap().values().iterator();
-        while (it.hasNext()) {
-            String key = (String) it.next();
-            m_nsmodels.put(key, m_imodels.get(getSchema().getRDFOntModel()));
-            log.debug("Add NS:" + key + " " + getSchema().getName());
+        //Load model from file or URI
+        Model model = SWBPlatform.getSemanticMgr().loadRDFFileModel(filePathOrURI);
+        SemanticModel smodel = new SemanticModel(new File(filePathOrURI).getName(), model);
+
+        //Register model in schema and ontology
+        getSchema().addOWLModel(filePathOrURI, smodel, false);
+        getOntology().addOWLModel(filePathOrURI, smodel, false);
+
+        //Add model to the base models of SemanticMgr
+        baseModels.put(smodel.getName(), smodel);
+
+        //Add new model namespaces to namespace model hashmap
+        for (String namespace: smodel.getRDFModel().getNsPrefixMap().values()) {
+            namespacedModels.put(namespace, internalModels.get(getSchema().getRDFOntModel()));
+            log.debug("Adding Namespace: " + namespace + " " + getSchema().getName());
         }
-
-        //debugModel(swbSquema);
         return smodel;
     }
 
     /**
-     * Load base vocabulary.
+     * Loads classes of the {@link SemanticMgr} schema into a {@link SemanticVocabulary}.
      */
     public void loadBaseVocabulary() {
         //Create Vocabulary
-        //System.out.println("Loading voc...");
-        if(vocabulary==null)vocabulary = new SemanticVocabulary();
+        if (vocabulary == null) {
+            vocabulary = new SemanticVocabulary();
+        }
 
-        //m_schema.getRDFOntModel().listStatements(null, RDF.type, RDFS.Class);
-
-        Iterator<SemanticClass> tpcit = new SemanticClassIterator(m_schema.getRDFOntModel().listClasses(),true);
-        while (tpcit.hasNext()) 
-        {
+        Iterator<SemanticClass> tpcit = new SemanticClassIterator(schema.getRDFOntModel().listClasses(), true);
+        while (tpcit.hasNext()) {
             SemanticClass cls = tpcit.next();
-            //System.out.println("register class:"+cls);
-            if(cls!=null)
-            {
-                vocabulary.registerClass(cls,false);
+            if (cls != null) {
+                vocabulary.registerClass(cls, false);
             }
         }
-        vocabulary.filterProperties();        
-        //System.out.println("voc ini");
+        vocabulary.filterProperties();
         vocabulary.init();
     }
 
     /**
-     * Load rdf remote model.
-     * 
-     * @param uri the uri
-     * @return the model
+     * Loads an RDF model making a connection to a defined URI.
+     * @param uri the uri of the model.
+     * @return the model.
      */
     public Model loadRDFRemoteModel(String uri) {
-        Model model = null;
         try {
+            log.info("-->Loading Remote Model: " + uri);
             URLConnection u = new URL(uri).openConnection();
             u.connect();
-            model = ModelFactory.createModelForGraph(new RemoteGraph(uri));
-            log.info("-->Loading Remote Model:" + uri);
-        } catch (Exception e) {
-            log.warn("-->Can´t create remote model:" + uri);
-            //log.error("-->"+e.getMessage());
+            return ModelFactory.createModelForGraph(new RemoteGraph(uri));
+        } catch (IOException e) {
+            log.warn("-->Can´t create remote model: " + uri);
         }
-        return model;
+        return null;
     }
 
     /**
-     * Read remote RDFa Model from webpage.
-     * 
-     * @param url = url of remote HTML webpage
-     * @return RDF Model
+     * Loads an RDF model making a connection to a defined URI. The resulting model is added to
+     * the {@link SemanticMgr}'s ontology if <code>add</code> is true.
+     * @param name          model name
+     * @param uri           model URI
+     * @param namespace     model namespace
+     * @param add           whether to add loaded model to the {@link SemanticMgr}'s ontology.
+     * @return the semantic model
+     */
+    public SemanticModel loadRemoteModel(String name, String uri, String namespace, boolean add) {
+        SemanticModel m = null;
+        Model model = loadRDFRemoteModel(uri);
+        if (model != null) {
+            m = new SemanticModel(name, model);
+            m.setNameSpace(namespace);
+
+            //TODO: notify this action
+            addModel(m, add);
+        }
+        return m;
+    }
+
+    /**
+     * Loads statements from a serialization format in HTML language.
+     * @param url URL of remote HTML webpage
+     * @return Model
      */
     public Model loadRDFaRemoteModel(String url) {
         return loadRDFaRemoteModel(url, "HTML");
     }
 
     /**
-     * Read remote RDFa Model from webpage.
-     * 
-     * @param url = url of remote webpage
-     * @param lang = "HTML" or "XHTML", default HTML
+     * Loads statements from a serialization format in a language.
+     * @see Model#read(String, String).
+     *
+     * @param url   url of remote webpage
+     * @param lang  "HTML" or "XHTML", default HTML
      * @return RDF Model
      */
     public Model loadRDFaRemoteModel(String url, String lang) {
+        //TODO: Review this code because language description in documentation does not match languages in Jena's Model class.
         Model model = null;
         try {
             Class.forName("net.rootdev.javardfa.RDFaReader");
@@ -423,56 +400,27 @@ public class SemanticMgr implements SWBInstanceObject
     }
 
     /**
-     * Load remote model.
-     * 
-     * @param name the name
-     * @param uri the uri
-     * @param baseNS the base ns
-     * @param add2Ontology the add2 ontology
+     * Loads statements from a serialization format in a language.
+     * @param name  model name
+     * @param url   model URL
+     * @param lang  serialization language
+     * @param add   whether to add loaded model to the {@link SemanticMgr}'s ontology.
      * @return the semantic model
      */
-    public SemanticModel loadRemoteModel(String name, String uri, String baseNS, boolean add2Ontology) {
-        SemanticModel m = null;
-        Model model = loadRDFRemoteModel(uri);
-        if (model != null) {
-            m = new SemanticModel(name, model);
-            m.setNameSpace(baseNS);
-            //TODO:notify this
-            addModel(m, add2Ontology);
-        }
-        return m;
-    }
-
-    /**
-     * Load remote rd fa model.
-     * 
-     * @param name the name
-     * @param url the url
-     * @param lang the lang
-     * @param add2Ontology the add2 ontology
-     * @return the semantic model
-     */
-    public SemanticModel loadRemoteRDFaModel(String name, String url, String lang, boolean add2Ontology) {
+    public SemanticModel loadRemoteRDFaModel(String name, String url, String lang, boolean add) {
         SemanticModel m = null;
         Model model = loadRDFaRemoteModel(url, lang);
         if (model != null) {
             m = new SemanticModel(name, model);
-            //TODO
-//            m.setNameSpace(baseNS);
-//            //TODO:notify this
-//            m_models.put(name, m);
-//            m_nsmodels.put(baseNS, m);
-//            log.debug("Add NS:"+baseNS+" "+m.getName());
-//            m_imodels.put(m.getRDFModel(), m);
-//            //System.out.println("addModel:"+name+" hash:"+m.getRDFModel().toString());
-//            if(add2Ontology)m_ontology.addSubModel(m,false);
+            //TODO: Impĺement submodel creation and addition to ontology when add is true
         }
         return m;
     }
 
     /**
-     * Load rdf file model.
-     * 
+     * Loads and RDF model from a file or URI.
+     * @see FileManager#loadModel(String);
+     *
      * @param path the path
      * @return the model
      */
@@ -481,21 +429,22 @@ public class SemanticMgr implements SWBInstanceObject
     }
 
     /**
-     * Load rdf file model.
-     * 
-     * @param path the path
-     * @param baseUri the base uri
+     * Loads an RDF model from a file or URI using a base URI.
+     * @see FileManager#loadModel(String, String, String)
+     *
+     * @param filenameOrURI the file path or URI of the model
+     * @param baseURI       the base URI
      * @return the model
      */
-    public Model loadRDFFileModel(String path, String baseUri) {
-        return FileManager.get().loadModel(path, baseUri, null);
+    public Model loadRDFFileModel(String filenameOrURI, String baseURI) {
+        return FileManager.get().loadModel(filenameOrURI, baseURI, null);
     }
 
     /**
-     * Read rdf file.
-     * 
-     * @param name the name
-     * @param path the path
+     * Builds a {@link SemanticModel} loading a RDF model.
+     *
+     * @param name model name
+     * @param path model path or URI.
      * @return the semantic model
      */
     public SemanticModel readRDFFile(String name, String path) {
@@ -508,190 +457,168 @@ public class SemanticMgr implements SWBInstanceObject
     }
 
     /**
-     * Load rdfdb model.
-     * 
-     * @param name the name
+     * Loads an RDF model from the underlying Triple Store.
+     *
+     * @param name model name
      * @return the model
      */
     private Model loadRDFDBModel(String name) {
         return store.loadModel(name);
     }
 
-//    public void debugClasses(OntModel model)
-//    {
-//        log.debug("**************************** debugClasses ********************************");
-//        for (Iterator i = model.listClasses();  i.hasNext(); ) {
-//            // now list the classes
-//            OntClass cls=(OntClass)i.next();
-//            log.debug("cls:"+cls.getLocalName());
-//            ExtendedIterator it=cls.listInstances();
-//            while(it.hasNext())
-//            {
-//                log.trace("-->inst:"+it.next());
-//            }
-//            
-//            log.debug("  is a Declared Propertie of " );
-//            for (Iterator it2 = cls.listDeclaredProperties(false); it2.hasNext();) 
-//            {
-//                Property prop=(Property)it2.next();
-//                log.trace("---->prop:"+prop);
-//            }            
-//        }        
-//    }
-//    public void debugResource(Resource res)
-//    {
-//        log.debug("**************************** debugModel ********************************");
-//        StmtIterator i = res.listProperties();
-//        while(i.hasNext()) 
-//        {
-//            Statement stm=i.nextStatement();
-//            log.trace("stmt:"+stm.getSubject()+" "+stm.getPredicate()+" "+stm.getObject());
-//        }        
-//    }    
-//    
-//    public void debugModel(Model model)
-//    {
-//        log.debug("**************************** debugModel ********************************");
-//        StmtIterator i = model.listStatements();
-//        while(i.hasNext()) 
-//        {
-//            Statement stm=i.nextStatement();
-//            log.trace("stmt:"+stm.getSubject()+" "+stm.getPredicate()+" "+stm.getObject());
-//        }        
-//    }    
-    /* (non-Javadoc)
-     * @see java.lang.Object#finalize()
-     */
     @Override
-    public void finalize() throws Throwable
-    {
+    protected void finalize() throws Throwable {
         super.finalize();
-        if(store!=null)
-        {
+        if (store != null) {
             store.close();
         }
-        log.event("SemanticMgr stoped...");
+        log.event("SemanticMgr stopped...");
     }
 
     /**
-     * Gets the models.
-     * 
-     * @return the models
+     * Gets the namedModels.
+     * @return the namedModels
      */
     public Set<Entry<String, SemanticModel>> getModels() {
-        return m_models.entrySet();
+        return namedModels.entrySet();
     }
 
     /**
-     * Gets the model.
-     * 
-     * @param name the name
+     * Gets a model.
+     * @param name model name
      * @return the model
      */
     public SemanticModel getModel(String name) {
-        //System.out.println("getModel:"+name+" "+m_models.get(name));
-        return m_models.get(name);
+        return namedModels.get(name);
     }
 
     /**
-     * Gets the model by ns.
-     * 
-     * @param nameSpace the name space
-     * @return the model by ns
+     * Gets a model.
+     * @param nameSpace model namespace
+     * @return the model
      */
     public SemanticModel getModelByNS(String nameSpace) {
-        return m_nsmodels.get(nameSpace);
+        return namespacedModels.get(nameSpace);
     }
 
     /**
-     * Gets the model.
-     * 
+     * Gets a model.
      * @param model the model
      * @return the model
      */
     public SemanticModel getModel(Model model) {
-        return m_imodels.get(model);
+        return internalModels.get(model);
     }
 
     /**
      * List base models.
-     * 
      * @return the iterator
      */
-    public Iterator<SemanticModel> listBaseModels()
-    {
-        return m_bmodels.values().iterator();
+    public Iterator<SemanticModel> listBaseModels() {
+        return baseModels.values().iterator();
     }
 
     /**
-     * Load db models.
+     * @deprecated for naming conventions. Use {@link #loadTripleStoreModels()}.
+     * Loads RDF models from the underlying Triple Store into memory.
      */
-    public void loadDBModels()
-    {
+    public void loadDBModels() {
+        loadTripleStoreModels();
+    }
+
+    /**
+     * Loads RDF models from the underlying Triple Store into memory.
+     */
+    public void loadTripleStoreModels() {
         log.debug("loadDBModels");
+
         //LoadModels
         Iterator<String> it = store.listModelNames();
         while (it.hasNext()) {
             String name = it.next();
             log.trace("LoadingModel:" + name);
-            SemanticModel model = loadDBModel(name);
+            SemanticModel model = loadTripleStoreModel(name);
             model.setDataset(store.getDataset(name));
-            
-            if ((semobjCache || semobjModelCache.contains(name)) && !(model.getRDFModel().getGraph() instanceof GraphCached)) 
-            {
+
+            if ((semobjCache || semobjModelCache.contains(name)) && !(model.getRDFModel().getGraph() instanceof GraphCached)) {
                 //Se cambia cache de grafo por cache de semanticObjects
-                if(userRepCache || !name.endsWith("_usr"))
-                {
-                    log.event("Loading SemanticObject:"+name+" FullCache");
+                if (userRepCache || !name.endsWith("_usr")) {
+                    log.event("Loading SemanticObject:" + name + " FullCache");
                     SemanticObject.loadFullCache(model);
                 }
-            }            
+            }
         }
     }
 
     /**
-     * Load a Model, if the model don't exist, it will be created.
-     *
-     * @param name the name
-     * @return the semantic model
-     * @return
+     * @deprecated for naming conventions. Use {@link #loadTripleStoreModel(String)}
+     * Loads or creates a named {@link SemanticModel}.
+     * @param name model name
+     * @return the model
      */
+    @Deprecated
     private SemanticModel loadDBModel(String name) {
-        return loadDBModel(name, tripleCache);
-    }
-    
-    /**
-     * Load a Model, if the model don't exist, it will be created.
-     * 
-     * @param name the name
-     * @param cached the cached
-     * @return the semantic model
-     * @return
-     */
-    private SemanticModel loadDBModel(String name, boolean cached) {
-        //new Exception().printStackTrace();
-        Model model = loadRDFDBModel(name);
-        return loadDBModel(name, model, cached);
+        return loadTripleStoreModel(name);
     }
 
     /**
-     * Load a Model, if the model don't exist, it will be created.
-     * 
-     * @param name the name
-     * @param cached the cached
-     * @return the semantic model
-     * @return
+     * Loads or creates a named {@link SemanticModel}.
+     * @param name model name
+     * @return the model
      */
+    private SemanticModel loadTripleStoreModel(String name) {
+        return loadTripleStoreModel(name, tripleCache);
+    }
+
+    /**
+     * @deprecated for naming conventions. Use {@link #loadTripleStoreModel(String, boolean)}.
+     * @param name model name
+     * @param cached whether to cache the {@link SemanticModel}
+     * @return the model
+     */
+    @Deprecated
+    private SemanticModel loadDBModel(String name, boolean cached) {
+        return loadTripleStoreModel(name, cached);
+    }
+
+    /**
+     * Loads or creates a named {@link SemanticModel}.
+     * @param name model name
+     * @param cached whether to cache the {@link SemanticModel}
+     * @return the model
+     */
+    private SemanticModel loadTripleStoreModel(String name, boolean cached) {
+        Model model = loadRDFDBModel(name);
+        return loadTripleStoreModel(name, model, cached);
+    }
+
+    /**
+     * @deprecated for naming conventions. Use {@link #loadTripleStoreModel(String, Model, boolean)}.
+     *
+     * @param name      model name
+     * @param cached    whether to cache the {@link SemanticModel}
+     * @return the SemanticModel
+     */
+    @Deprecated
     private SemanticModel loadDBModel(String name, Model model, boolean cached) {
-        
+        return loadTripleStoreModel(name, model, cached);
+    }
+
+    /**
+     * Loads or creates a {@link SemanticModel}. Checks if SWBAdmin or SWBOntEdit models are requested.
+     *
+     * @param name      model name
+     * @param cached    whether to cache the {@link SemanticModel}
+     * @return the SemanticModel
+     */
+    //TODO: Problematic refactor
+    private SemanticModel loadTripleStoreModel(String name, Model model, boolean cached) {
         if (cached) {
-            log.info("Loading Model Cache:"+name);
-            //System.out.println("Cache:"+name);
+            log.info("Loading Model Cache:" + name);
             model = new ModelCom(new GraphCached((model.getGraph())));
         }
-        
+
         if (name.equals(SWBAdmin) && !SWBPlatform.createInstance().isAdminDev()) {
-            //System.out.println(model);
             log.info("Loading SWBAdmin...");
             OntModel omodel = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM, model);
             try {
@@ -705,15 +632,14 @@ public class SemanticMgr implements SWBInstanceObject
             }
             model = omodel;
         } else if (name.equals(SWBAdmin)) {
-            List ns=SWBUtils.Collections.copyIterator(model.listNameSpaces());
-            if (ns.size()<=1) { // verifica que no exista mas de un namespace
+            List ns = SWBUtils.Collections.copyIterator(model.listNameSpaces());
+            if (ns.size() <= 1) { // verifica que no exista mas de un namespace
                 log.info("Importing SWBAdmin...");
                 try {
                     FileInputStream in = new FileInputStream(SWBUtils.getApplicationPath() + SWBPlatform.createInstance().getAdminFile());
                     if (model.supportsTransactions()) {
                         ModelRDB m = (ModelRDB) model;
                         try {
-                            //m.setDoDuplicateCheck( false );
                             m.begin();
                             m.read(in, null, "N-TRIPLE");
                             in.close();
@@ -721,7 +647,6 @@ public class SemanticMgr implements SWBInstanceObject
                             log.error(e);
                         } finally {
                             m.commit();
-                            //m.setDoDuplicateCheck(true);
                         }
                     } else {
                         model.read(in, null, "N-TRIPLE");
@@ -754,7 +679,6 @@ public class SemanticMgr implements SWBInstanceObject
                     if (model instanceof ModelRDB) {
                         ModelRDB m = (ModelRDB) model;
                         try {
-                            //m.setDoDuplicateCheck( false );
                             m.begin();
                             m.read(in, null, "N-TRIPLE");
                             in.close();
@@ -762,7 +686,6 @@ public class SemanticMgr implements SWBInstanceObject
                             log.error(e);
                         } finally {
                             m.commit();
-                            //m.setDoDuplicateCheck(true);
                         }
                     } else {
                         model.read(in, null, "N-TRIPLE");
@@ -775,117 +698,141 @@ public class SemanticMgr implements SWBInstanceObject
         }
         SemanticModel m = null;
         //Verificar si es una ontologia
-        Resource res=model.getResource(model.getNsPrefixURI(name)+name);
-        //System.out.println("uri:"+model.getNsPrefixURI(name)+name);
-        StmtIterator it=res.listProperties(RDF.type);
-        while(it.hasNext())
-        {
-            Statement stm=it.next();
-            Resource type=stm.getResource();
-            //System.out.println("Type:"+type);
-            if(type!=null && type.getLocalName().equals("Ontology"))
-            {
-                model=new ModelCom(new GraphCached((model.getGraph())));
+        Resource res = model.getResource(model.getNsPrefixURI(name) + name);
+        StmtIterator it = res.listProperties(RDF.type);
+        while (it.hasNext()) {
+            Statement stm = it.next();
+            Resource type = stm.getResource();
+            if (type != null && type.getLocalName().equals("Ontology")) {
+                model = new ModelCom(new GraphCached((model.getGraph())));
                 m = new SemanticModel(name, model);
-                //System.out.println("cache ontology:"+m);
             }
         }
         it.close();
 
-        if(m==null) //No es una ontologia
+        if (m == null) //No es una ontologia
         {
             m = new SemanticModel(name, model);
         }
 
         //TODO:notify this
-        //System.out.println("Model:"+name);
         addModel(m, true);
         return m;
     }
 
-    public void addModel(SemanticModel model, boolean add2Ontology)
-    {
-        //System.out.println("addModel:"+model.getName());
-        m_models.put(model.getName(), model);
-        m_nsmodels.put(model.getNameSpace(), model);
+    /**
+     * Adds a model to the {@link SemanticMgr} models.
+     * @param model Model
+     * @param add   whether to add the model to the {@link SemanticMgr}'s ontology.
+     */
+    public void addModel(SemanticModel model, boolean add) {
         log.debug("Add NS:" + model.getNameSpace() + " " + model.getName());
-        m_imodels.put(model.getRDFModel(), model);
-        if (add2Ontology) {
-            m_ontology.addSubModel(model, false);
+
+        namedModels.put(model.getName(), model);
+        namespacedModels.put(model.getNameSpace(), model);
+        internalModels.put(model.getRDFModel(), model);
+        if (add) {
+            ontology.addSubModel(model, false);
         }
     }
 
     /**
-     * Creates the model.
+     * Creates a model in the underlying Triple Store.
      *
-     * @param name the name
+     * @param name      the name
      * @param nameSpace the name space
      * @return the semantic model
      */
     public SemanticModel createModel(String name, String nameSpace) {
-        return createDBModel(name, nameSpace, tripleCache);
+        return createTripleStoreModel(name, nameSpace, tripleCache);
     }
 
     /**
-     * Creates the model.
-     * 
-     * @param name the name
+     * @deprecated for naming conventions. Use {@link #createTripleStoreModel(String, String, boolean)}.
+     * Creates a model in the underlying Triple Store.
+     *
+     * @param name      the name
      * @param nameSpace the name space
-     * @param cached the cached
+     * @param cached    the cached
      * @return the semantic model
      */
+    @Deprecated
     public SemanticModel createDBModel(String name, String nameSpace, boolean cached) {
-        //System.out.println("createModel:"+name+" "+nameSpace);
+        return createTripleStoreModel(name, nameSpace, cached);
+    }
+
+    /**
+     * Creates a model in the underlying Triple Store.
+     *
+     * @param name      model name
+     * @param nameSpace model name space
+     * @param cached    whether to cache model
+     * @return the semantic model
+     */
+    public SemanticModel createTripleStoreModel(String name, String nameSpace, boolean cached) {
         //Limpiar Cache
         SemanticObject.clearCache();
-        
+
         Model model = loadRDFDBModel(name);
         model.setNsPrefix(name, nameSpace);
-        //System.out.println("getNsPrefix:"+model.getNsPrefixURI(name));
-       
-        //model.close();
-        //SemanticModel ret = loadDBModel(name, cached);
-        
-        SemanticModel ret = loadDBModel(name, model, cached);
-        
-        //ret.setNameSpace(nameSpace);
-        //model = ret.getRDFModel();
-        //System.out.println("ret:"+ret+" model:"+model);
-//        model.setNsPrefix(name+"_"+SemanticVocabulary.SWB_NS, nameSpace);
-//        model.setNsPrefix(name, SemanticVocabulary.URI+SemanticVocabulary.SWB_NS);
-        //model.setNsPrefixes(m_schema.getRDFOntModel().getNsPrefixMap());
-        return ret;
+        return loadTripleStoreModel(name, model, cached);
     }
 
     /**
+     * @deprecated for naming conventions. Use {@link #createTripleStoreModelByRDF(String, String, InputStream)}
      * Creates the model by rdf.
-     * 
-     * @param name the name
+     *
+     * @param name      the name
      * @param namespace the namespace
-     * @param in the in
+     * @param in        the in
      * @return the semantic model
      */
+    @Deprecated
     public SemanticModel createDBModelByRDF(String name, String namespace, InputStream in) {
-        return createDBModelByRDF(name, namespace, in, null);
+        return createTripleStoreModelByRDF(name, namespace, in);
     }
 
     /**
-     * Creates the model by rdf.
-     * 
-     * @param name the name
-     * @param namespace the namespace
-     * @param in the in
-     * @param lang the lang
+     * Creates a model by loading RDF statements from an {@link InputStream}.
+     *
+     * @param name      model name
+     * @param namespace model namespace
+     * @param in        {@link InputStream} object
      * @return the semantic model
      */
+    public SemanticModel createTripleStoreModelByRDF(String name, String namespace, InputStream in) {
+        return createTripleStoreModelByRDF(name, namespace, in, null);
+    }
+
+    /**
+     * @deprecated for naming conventions. Use {@link #createTripleStoreModelByRDF(String, String, InputStream, String)}
+     *
+     * @param name      the name
+     * @param namespace the namespace
+     * @param in        the in
+     * @param lang      the lang
+     * @return the semantic model
+     */
+    @Deprecated
     public SemanticModel createDBModelByRDF(String name, String namespace, InputStream in, String lang) {
+        return createTripleStoreModelByRDF(name, namespace, in, lang);
+    }
+
+    /**
+     * Creates a model by loading RDF statements from an {@link InputStream}.
+     *
+     * @param name      model name
+     * @param namespace model namespace
+     * @param in        {@link InputStream} object
+     * @param lang      model language
+     * @return the semantic model
+     */
+    public SemanticModel createTripleStoreModelByRDF(String name, String namespace, InputStream in, String lang) {
         SemanticModel ret = createModel(name, namespace);
         Model model = ret.getRDFModel();
         try {
-            //System.out.println("createDBModelByRDF:"+model.supportsTransactions()+" "+model+" "+model.getGraph()+" "+model.getGraph().getTransactionHandler()+" "+model.getGraph().getTransactionHandler().transactionsSupported());
             if (model.supportsTransactions()) {
                 try {
-                    //m.setDoDuplicateCheck( false );
                     model.begin();
                     model.read(in, null, lang);
                     in.close();
@@ -893,16 +840,11 @@ public class SemanticMgr implements SWBInstanceObject
                     log.error(e);
                 } finally {
                     model.commit();
-                    //m.setDoDuplicateCheck(true);
                 }
             } else {
                 model.read(in, null, lang);
                 in.close();
             }
-//        ret.getRDFModel().read(in, null,lang);
-//        try
-//        {
-//            in.close();
             //Limpia cache provisional
         } catch (Exception e) {
             log.error(e);
@@ -911,54 +853,39 @@ public class SemanticMgr implements SWBInstanceObject
     }
 
     /**
-     * Removes the model.
-     * 
-     * @param name the name
+     * Removes a named model.
+     * @param name model name
      */
     public void removeModel(String name) {
-        SemanticModel model = m_models.get(name);
-        //TODO:notify this
-        m_models.remove(name);
-        m_nsmodels.remove(model.getNameSpace());
-        m_imodels.remove(model.getRDFModel());
-        m_ontology.removeSubModel(model, true);
+        SemanticModel model = namedModels.get(name);
+        //TODO: notify this action
+        namedModels.remove(name);
+
+        namespacedModels.remove(model.getNameSpace());
+        internalModels.remove(model.getRDFModel());
+        ontology.removeSubModel(model, true);
 
         store.removeModel(name);
     }
 
     /**
-     * Gets the ontology.
-     * 
+     * Gets the {@link SemanticMgr}'s ontology.
      * @return the ontology
      */
     public SemanticOntology getOntology() {
-        return m_ontology;
+        return ontology;
     }
 
     /**
-     * Gets the schema.
-     * 
+     * Gets the {@link SemanticMgr}'s schema.
      * @return the schema
      */
     public SemanticOntology getSchema() {
-        return m_schema;
+        return schema;
     }
 
-//    public SemanticModel getSchemaModel(String name)
-//    {
-//        return m_schemas.get(name);
-//    }
-//    public SemanticModel getSystemModel()
-//    {
-//        return m_system;
-//    }
-//    public OntClass getOntClass(String uri)
-//    {
-//        return m_ontology.getRDFOntModel().getOntClass(uri);
-//    }
     /**
-     * Gets the vocabulary.
-     *
+     * Gets the {@link SemanticMgr}'s vocabulary.
      * @return the vocabulary
      */
     public SemanticVocabulary getVocabulary() {
@@ -966,164 +893,168 @@ public class SemanticMgr implements SWBInstanceObject
     }
 
     /**
-     * Register observer.
-     * 
-     * @param obs the obs
+     * Registers a model observer.
+     * @param observer the observer
      */
-    public void registerObserver(SemanticObserver obs) {
-        m_observers.add(obs);
+    public void registerObserver(SemanticObserver observer) {
+        modelObservers.add(observer);
     }
 
     /**
-     * Removes the observer.
-     * 
-     * @param obs the obs
+     * Removes a model observer.
+     * @param observer the observer
      */
-    public void removeObserver(SemanticObserver obs) {
-        m_observers.remove(obs);
-    }
-    
-    /**
-     * Register observer.
-     * 
-     * @param obs the obs
-     */
-    public void registerTSObserver(SemanticTSObserver obs) {
-        m_tsobservers.add(obs);
+    public void removeObserver(SemanticObserver observer) {
+        modelObservers.remove(observer);
     }
 
     /**
-     * Removes the observer.
-     * 
-     * @param obs the obs
+     * Registers a Triple Store observer.
+     * @param observer the observer
      */
-    public void removeTSObserver(SemanticTSObserver obs) {
-        m_tsobservers.remove(obs);
-    }    
-    
+    public void registerTSObserver(SemanticTSObserver observer) {
+        tsObservers.add(observer);
+    }
 
     /**
-     * Notify change.
-     * 
-     * @param obj the obj
-     * @param prop the prop
-     * @param lang the lang
-     * @param action the action
+     * Removes a TripleStore observer.
+     * @param observer the observer
+     */
+    public void removeTSObserver(SemanticTSObserver observer) {
+        tsObservers.remove(observer);
+    }
+
+    /**
+     * Converts a short SemanticObject URI (model id + object id) to a full URI (model URI + id).
+     * @param shorturi short URI
+     * @return Full URI
+     */
+    public static String shortToFullURI(String shorturi) {
+        int pos = shorturi.indexOf('#');
+        if (pos != -1) {
+            throw new IllegalArgumentException();
+        }
+        pos = shorturi.indexOf(':');
+        if (pos != -1) {
+            String idmodel = shorturi.substring(0, pos);
+            SemanticModel model = SWBPlatform.getSemanticMgr().getModel(idmodel);
+            if (model != null) {
+                return model.getNameSpace() + shorturi.substring(pos + 1);
+            }
+            throw new IllegalArgumentException("The objectModel was not found " + idmodel);
+        } else {
+            throw new IllegalArgumentException("The separator ':' was not found in shorturi " + shorturi);
+        }
+    }
+
+    /**
+     * Notifies a change in a model to registered observers.
+     *
+     * @param obj       the changed {@link SemanticObject}
+     * @param prop      the changed {@link SemanticProperty}
+     * @param lang      the language
+     * @param action    the action that triggered the change
      */
     public void notifyChange(SemanticObject obj, Object prop, String lang, String action) {
-        //log.trace("notifyChange: obj:" + obj + " prop:" + prop + " " + action);
-        //System.out.println("notifyChange: obj:" + obj + " prop:" + prop + " " + action);
-        if (obj.getURI() != null) {
-            if (prop != null && prop instanceof SemanticProperty) {
-                if (((SemanticProperty) prop).isNotObservable()) {
-                    return; //No es observable
-                }
-            }
-            Iterator it = m_observers.iterator();
-            while (it.hasNext()) {
-                SemanticObserver obs = (SemanticObserver) it.next();
-                try {
-                    obs.notify(obj, prop, lang, action);
-                } catch (Exception e) {
-                    log.error(e);
-                }
-            }
-            SemanticClass cls=obj.getSemanticClass();
-            if(cls!=null)
-            {
-                try {
-                    cls.notifyChange(obj, prop, lang, action);
-                } catch (Exception e) {
-                    log.error(e);
-                }
-            }
-            if(prop!=null && prop instanceof SemanticProperty)
-            {
-                try {
-                    ((SemanticProperty) prop).notifyChange(obj, prop, lang, action);
-                } catch (Exception e) {
-                    log.error(e);
-                }
-            }
+        //Return inmediately if object is not provided or property is not observable
+        if (null == obj.getURI() || (prop instanceof SemanticProperty && ((SemanticProperty) prop).isNotObservable())) {
+            return;
+        }
 
+        //Notifies Model observers
+        for (SemanticObserver observer : modelObservers) {
+            try {
+                observer.notify(obj, prop, lang, action);
+            } catch (Exception e) {
+                log.error(e);
+            }
+        }
+
+        //Notifies SemanticClass observers
+        SemanticClass cls = obj.getSemanticClass();
+        if (cls != null) {
+            try {
+                cls.notifyChange(obj, prop, lang, action);
+            } catch (Exception e) {
+                log.error(e);
+            }
+        }
+
+        //Notifies SemanticProperty observers
+        if (prop instanceof SemanticProperty) {
+            try {
+                ((SemanticProperty) prop).notifyChange(obj, prop, lang, action);
+            } catch (Exception e) {
+                log.error(e);
+            }
         }
     }
-    
-    
-    /**
-     * Notify change.
-     * 
-     * @param obj the SemanticObject
-     * @param stmt the Statement
-     * @param action the action
-     */
-    public void notifyTSChange(SemanticObject obj, Statement stmt, String action) 
-    {
-        notifyTSChange(obj, stmt, action,false);
-    }    
 
     /**
-     * Notify change.
-     * 
-     * @param obj the SemanticObject
-     * @param stmt the Statement
-     * @param action the action
+     * Notifies a change in a local Triple Store to registered observers.
+     *
+     * @param obj       the changed {@link SemanticObject}
+     * @param stmt      the changed statement
+     * @param action    the action that triggered the change
      */
-    public void notifyTSChange(SemanticObject obj, Statement stmt, String action, boolean remote) 
-    {
-        //System.out.println("notifyTSChange: obj:" + obj + " stmt:" + stmt + " " + action+" "+remote);
-        //log.trace("notifyTSChange: obj:" + obj + " stmt:" + stmt + " " + action);
-        if (obj!=null && obj.getURI() != null) 
-        {
-            Iterator it = m_tsobservers.iterator();
-            while (it.hasNext()) 
-            {
-                SemanticTSObserver obs = (SemanticTSObserver) it.next();
+    public void notifyTSChange(SemanticObject obj, Statement stmt, String action) {
+        notifyTSChange(obj, stmt, action, false);
+    }
+
+    /**
+     * Notifies a change in a Triple Store to registered observers.
+     *
+     * @param obj       the changed {@link SemanticObject}
+     * @param stmt      the changed statement
+     * @param action    the action that triggered the change
+     * @param remote    whether the changed TripleStore is not local
+     */
+    public void notifyTSChange(SemanticObject obj, Statement stmt, String action, boolean remote) {
+        if (obj != null && obj.getURI() != null) {
+            for(SemanticTSObserver observer : tsObservers) {
                 try {
-                    obs.notify(obj, stmt, action, remote);
+                    observer.notify(obj, stmt, action, remote);
                 } catch (Exception e) {
                     log.error(e);
                 }
             }
         }
-    }    
-    
+    }
+
     /**
-     * Notify external change.
-     * 
-     * @param uri the uri
-     * @param puri the puri
-     * @param lang the lang
-     * @param action the action
+     * Triggers an action on SemanticObject's RDF statements to add or delete a {@link Node} as a property.
+     *
+     * @param objURI    changed object URI
+     * @param propURI   changed property URI
+     * @param action    the action (one of {@link SemanticObject#ACT_ADD} or SemanticObject#ACT_REMOVE).
      */
-    public void processExternalChange(String uri, String puri, Node node, String action)
-    {
-        //log.trace("processExternalChange: uri:" + uri + " puri:" + puri + " node:" + node+" "+action);  
-        //System.out.println("processExternalChange:"+uri+" puri:" + puri + " node:;" + node+" "+action);  
-        SemanticObject obj=SemanticObject.getSemanticObjectFromCache(uri);
-        if(obj==null)
-        {
-            SemanticObject.clearNotFoundURI(uri);            
-            obj=SemanticObject.createSemanticObject(uri);
+    public void processExternalChange(String objURI, String propURI, Node node, String action) {
+        //Get related Semantic Object
+        SemanticObject obj = SemanticObject.getSemanticObjectFromCache(objURI);
+        if (obj == null) {
+            SemanticObject.clearNotFoundURI(objURI);
+            obj = SemanticObject.createSemanticObject(objURI);
         }
-        if(obj!=null)
-        {            
-            Model model=obj.getModel().getRDFModel();
-            SemanticProperty prop=null;
-            Statement stmt=null;
-            if(puri!=null)prop=SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(puri);
-            if(action.equals(SemanticObject.ACT_ADD))
-            {
-                stmt=model.createStatement(obj.getRDFResource(), prop.getRDFProperty(), model.asRDFNode(node));
+
+        if (obj != null) {
+            Model model = obj.getModel().getRDFModel();
+            SemanticProperty prop = null;
+            Statement stmt = null;
+
+            //Get related SemanticProperty
+            if (propURI != null) {
+                prop = SWBPlatform.getSemanticMgr().getVocabulary().getSemanticProperty(propURI);
+            }
+
+            //TODO: Check NPEs and consistency of additions and deletions
+            if (action.equals(SemanticObject.ACT_ADD)) {
+                stmt = model.createStatement(obj.getRDFResource(), prop.getRDFProperty(), model.asRDFNode(node));
                 obj.addStatement(stmt, true);
-            }else if(action.equals(SemanticObject.ACT_REMOVE))
-            {
-                if(puri!=null)
-                {
-                    stmt=model.createStatement(obj.getRDFResource(), prop.getRDFProperty(), model.asRDFNode(node));
+            } else if (action.equals(SemanticObject.ACT_REMOVE)) {
+                if (propURI != null) {
+                    stmt = model.createStatement(obj.getRDFResource(), prop.getRDFProperty(), model.asRDFNode(node));
                     obj.remove(stmt, true);
-                }else
-                {
+                } else {
                     obj.remove(true);
                 }
             }
@@ -1131,39 +1062,36 @@ public class SemanticMgr implements SWBInstanceObject
         }
     }
 
-
     /**
-     * Gets the code package.
-     * 
-     * @return the code package
-     * @return
+     * Gets the {@link SemanticMgr}'s code package.
+     * @return CodePackage.
      */
     public CodePackage getCodePackage() {
-        return codepkg;
+        return codepackage;
     }
 
     /**
-     * Close all models.
+     * Closes all named models.
      */
     public void close() {
-        //System.out.println("ServerMgr.Close()");
         store.close();
-        store=null;
+        store = null;
     }
 
     /**
-     * Destroy method for this filter.
+     * Destroys {@link SemanticMgr}.
      */
     public void destroy() {
         close();
     }
 
     /**
-     * Creates the key pair.
+     * Creates a key pair and stores it in SWBAdmin model.
      */
     public void createKeyPair() {
+        //TODO: Move this method outside SemanticMgr because is SWBAdmin site specific and each call changes Model's keypair.
         SemanticModel model = getModel(SWBAdmin);
-        if (null!=model && null!=model.getModelObject()){
+        if (null != model && null != model.getModelObject()) {
             String[] llaves = SWBUtils.CryptoWrapper.storableKP();
             SemanticProperty priv = model.createSemanticProperty(SWBAdminURI + "/PrivateKey", model.getModelObject().getSemanticClass(), SemanticVocabulary.OWL_DATATYPEPROPERTY, SemanticVocabulary.XMLS_STRING);
             SemanticProperty publ = model.createSemanticProperty(SWBAdminURI + "/PublicKey", model.getModelObject().getSemanticClass(), SemanticVocabulary.OWL_DATATYPEPROPERTY, SemanticVocabulary.XMLS_STRING);
@@ -1173,30 +1101,46 @@ public class SemanticMgr implements SWBInstanceObject
         }
     }
 
-    public AbstractStore getSWBStore(){
+    /**
+     * Gets the underlying Triple Store.
+     * @return AbstractStore.
+     */
+    public AbstractStore getSWBStore() {
         return store;
     }
-    
-    public boolean isTripleFullCache()
-    {
+
+    /**
+     * Gets the tripleCache property.
+     * @return tripleCache property.
+     */
+    public boolean isTripleFullCache() {
         return tripleCache;
     }
 
-    public ClassLoader getClassLoader()
-    {
+    /**
+     * Gets the {@link SemanticMgr} class loader.
+     * @return ClassLoader.
+     */
+    public ClassLoader getClassLoader() {
         return classLoader;
     }
 
-    public void setClassLoader(ClassLoader classLoader)
-    {
-        //System.out.println("setClassLoader:"+classLoader);
+    /**
+     * Sets the {@link SemanticMgr} class loader.
+     * @param classLoader {@link ClassLoader}
+     */
+    public void setClassLoader(ClassLoader classLoader) {
         this.classLoader = classLoader;
-    }      
-    
-    public void rebind()
-    {
+    }
+
+    /**
+     * Causes the inference model of the schema and ontology of the {@link SemanticMgr}
+     * to reconsult the underlying data to take into account changes.
+     *
+     * @see InfModel#rebind()
+     */
+    public void rebind() {
         getSchema().rebind();
         getOntology().rebind();
     }
-
 }

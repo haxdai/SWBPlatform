@@ -22,12 +22,14 @@
  */
 package org.semanticwb.xforms.ui;
 
-import org.semanticwb.xforms.drop.RDFElement;
-import java.util.*;
-import org.semanticwb.xforms.lib.WBXformsContainer;
-import org.semanticwb.xforms.ui.container.*;
-import org.semanticwb.SWBUtils;
+import java.util.HashMap;
+import java.util.Iterator;
+
 import org.semanticwb.Logger;
+import org.semanticwb.SWBUtils;
+import org.semanticwb.xforms.drop.RDFElement;
+import org.semanticwb.xforms.lib.WBXformsContainer;
+import org.semanticwb.xforms.ui.container.XFGroup;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -130,7 +132,7 @@ public class XFCaseSwitch extends WBXformsContainer {
      */
     @Override
     public String getXml() {
-        StringBuffer strbXml=new StringBuffer();
+        StringBuilder strbXml=new StringBuilder();
         try {
             strbXml.append("<case id=\""+id+"\"");
             

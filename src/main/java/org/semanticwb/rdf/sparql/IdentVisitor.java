@@ -24,9 +24,9 @@ package org.semanticwb.rdf.sparql;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-
-import org.stringtemplate.v4.*;
-
+import org.stringtemplate.v4.ST;
+import org.stringtemplate.v4.STGroup;
+//TODO: Review this class to avoid copy and paste of code. Code is used in SWBSocial
 public class IdentVisitor extends SparqlParserBaseVisitor<ST> implements SparqlParserVisitor<ST> {
 
     STGroup g = null;
